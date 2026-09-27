@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla Periódica Interactiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        'alkali': '#EF4444',         // Metales Alcalinos (Rojo)
+                        'alkaline-earth': '#F97316',  // Alcalinotérreos (Naranja)
+                        'transition': '#F59E0B',      // Transición (Ámbar/Amarillo)
+                        'post-transition': '#10B981', // Metales bloque p (Verde)
+                        'metalloid': '#14B8A6',       // Metaloides (Cian)
+                        'reactive-nonmetal': '#3B82F6',// No metales reactivos (Azul)
+                        'noble-gas': '#8B5CF6',       // Gases nobles (Púrpura)
+                        'lanthanide': '#EC4899',      // Lantánidos (Rosa)
+                        'actinide': '#D946EF',        // Actínidos (Fucsia)
+                        'unknown': '#6B7280',         // Desconocidos / Sintéticos (Gris)
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos personalizados para el Grid Periódico */
+        body {
+            background-color: #0B0F19;
+            color: #E5E7EB;
+        }
+
+        .periodic-grid {
+            display: grid;
+            grid-template-columns: repeat(18, minmax(0, 1fr));
+            gap: 4px;
+        }
+
+        .element-card {
+            aspect-ratio: 1 / 1.15;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .element-card:hover {
+            transform: scale(1.15) z-index(30);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.8);
+            z-index: 40;
+        }
+
+        .element-card.dimmed {
+            opacity: 0.15;
+            filter: grayscale(80%);
+        }
+
+        .element-card.selected {
+            ring: 2px solid #FFFFFF;
+            box-shadow: 0 0 15px currentColor;
+            z-index: 30;
+        }
+
+        /* Scrollbar estilizada */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4B5563;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header principal -->
+    <header class="bg-gray-900/90 backdrop-blur border-b border-gray-800 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-lg border border-indigo-500/30">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                </div>
+              <div>
+    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+        Tabla Periódica 
+        <a href="https://www.facebook.com/TodoEstoEsHistoria" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 hover:bg-indigo-900 hover:text-indigo-200 transition-colors">
+            Esto Es Historia
+        </a>
+    </h1>
+    <p class="text-xs text-gray-400">Sistema Interactivo de Análisis Fisicoquímico Avanzado</p>
+</div>
+            </div>
+
+            <!-- Buscador general -->
+            <div class="relative w-full md:w-80">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <input type="text" id="searchInput" placeholder="Buscar por símbolo, nombre o N° (Ej. Fe, Oro, 79)..." 
+                    class="w-full pl-9 pr-4 py-1.5 bg-gray-950 border border-gray-700/80 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal: Tabla + Panel Detalle -->
+    <main class="flex-1 max-w-[1700px] w-full mx-auto p-3 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Columna Izquierda: Leyenda y Grid de la Tabla (8/12 o 9/12) -->
+        <section class="lg:col-span-8 xl:col-span-9 flex flex-col gap-4">
+
+            <!-- Panel Leyenda / Filtros de Categorías -->
+            <div class="bg-gray-900/60 rounded-xl p-3 border border-gray-800 text-xs">
+                <div class="text-gray-400 font-semibold mb-2 flex items-center justify-between">
+                    <span>CATEGORÍAS Y FILTROS DÉBIL/FUERTE:</span>
+                    <button id="resetCategoryBtn" class="text-indigo-400 hover:text-indigo-300 text-[11px] underline hidden">Restablecer filtro</button>
+                </div>
+                <div class="flex flex-wrap gap-1.5" id="categoryFilterContainer">
+                    <!-- Se llenará dinámicamente con JS -->
+                </div>
+            </div>
+
+            <!-- Tabla Periódica Grid con Scroll Horizontal en Pantallas Pequeñas -->
+        <div class="overflow-x-auto pb-4 pt-1 px-1">
+            <div class="min-w-[920px]">
+                <!-- Grid de los 118 Elementos (Filas 1 a 7) -->
+                <div id="periodicGrid" class="periodic-grid mb-6"></div>
+
+                <!-- Bloque separado: Lantánidos y Actínidos -->
+                <div class="mt-4 pt-3 border-t border-gray-800/80 pl-[11.11%]">
+                    <div class="text-[11px] font-mono font-semibold text-pink-400/80 mb-1 flex items-center gap-2">
+                        <span>* 57-71 LANTÁNIDOS</span>
+                    </div>
+                    <div id="lanthanidesGrid" class="periodic-grid mb-2"></div>
+
+                    <div class="text-[11px] font-mono font-semibold text-fuchsia-400/80 mb-1 flex items-center gap-2 mt-2">
+                        <span>** 89-103 ACTÍNIDOS</span>
+                    </div>
+                    <div id="actinidesGrid" class="periodic-grid"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Columna Derecha: Tarjeta Informativa al Costado Derecho -->
+    <aside class="lg:col-span-4 xl:col-span-3">
+        <div id="detailPanel" class="bg-gray-900 border border-gray-800 rounded-2xl p-5 sticky top-20 shadow-2xl flex flex-col gap-5">
+            <!-- Se inyectará mediante Javascript según el elemento presionado -->
+        </div>
+    </aside>
+</main>
+
+    <script>
+        // Categorías y Colores
+        const CATEGORIES = {
+            'alkali': { name: 'Metales Alcalinos', color: 'bg-red-500', text: 'text-red-400', border: 'border-red-500/40', hex: '#EF4444' },
+            'alkaline-earth': { name: 'Alcalinotérreos', color: 'bg-orange-500', text: 'text-orange-400', border: 'border-orange-500/40', hex: '#F97316' },
+            'transition': { name: 'Metales de Transición', color: 'bg-amber-500', text: 'text-amber-400', border: 'border-amber-500/40', hex: '#F59E0B' },
+            'post-transition': { name: 'Otros Metales (Bloque p)', color: 'bg-emerald-500', text: 'text-emerald-400', border: 'border-emerald-500/40', hex: '#10B981' },
+            'metalloid': { name: 'Metaloides / Semimetales', color: 'bg-teal-500', text: 'text-teal-400', border: 'border-teal-500/40', hex: '#14B8A6' },
+            'reactive-nonmetal': { name: 'No Metales Reactivos', color: 'bg-blue-500', text: 'text-blue-400', border: 'border-blue-500/40', hex: '#3B82F6' },
+            'noble-gas': { name: 'Gases Nobles', color: 'bg-purple-500', text: 'text-purple-400', border: 'border-purple-500/40', hex: '#8B5CF6' },
+            'lanthanide': { name: 'Lantánidos', color: 'bg-pink-500', text: 'text-pink-400', border: 'border-pink-500/40', hex: '#EC4899' },
+            'actinide': { name: 'Actínidos', color: 'bg-fuchsia-500', text: 'text-fuchsia-400', border: 'border-fuchsia-500/40', hex: '#D946EF' },
+            'unknown': { name: 'Sintéticos / Prop. Desconocidas', color: 'bg-gray-500', text: 'text-gray-400', border: 'border-gray-500/40', hex: '#6B7280' }
+        };
+
+        // BASE DE DATOS COMPLETA DE LOS 118 ELEMENTOS QUÍMICOS
+        const ELEMENTS = [
+            // Periodo 1
+            { n: 1, s: "H", name: "Hidrógeno", mass: "1.008", cat: "reactive-nonmetal", row: 1, col: 1, config: "1s¹", phase: "Gas", discYear: "1766", discBy: "Henry Cavendish", electroneg: "2.20", radius: "53 pm", oxStates: "-1, +1", mp: "-259.1 °C", bp: "-252.9 °C", summary: "Elemento más abundante del universo. Clave en química orgánica, producción de amoníaco y desarrollo de celdas de combustible sustentables.", history: "Identificado formalmente como gas inflamable independiente por Cavendish en 1766, Antoine Lavoisier le dio su nombre que significa 'formador de agua'." },
+            { n: 2, s: "He", name: "Helio", mass: "4.0026", cat: "noble-gas", row: 1, col: 18, config: "1s²", phase: "Gas", discYear: "1868", discBy: "Janssen & Lockyer", electroneg: "N/A", radius: "31 pm", oxStates: "0", mp: "-272.2 °C", bp: "-268.9 °C", summary: "Gas monoatómico inerte. Utilizado como refrigerante criogénico en resonancia magnética nuclear (RMN) y espectrometría de masas.", history: "Descubierto independientemente en la espectroscopia del Sol durante un eclipse solar antes de ser aislado en la Tierra por William Ramsay en 1895." },
+
+            // Periodo 2
+            { n: 3, s: "Li", name: "Litio", mass: "6.94", cat: "alkali", row: 2, col: 1, config: "[He] 2s¹", phase: "Sólido", discYear: "1817", discBy: "Johan August Arfwedson", electroneg: "0.98", radius: "167 pm", oxStates: "+1", mp: "180.5 °C", bp: "1342 °C", summary: "Metal alcalino más ligero. Esencial para baterías de ion-litio de alta densidad energética y síntesis de reactivos organolíticos.", history: "Descubierto analizando la petalita. Su nombre proviene del griego 'lithos' (piedra), pues fue hallado en minerales a diferencia del sodio/potasio vegetales." },
+            { n: 4, s: "Be", name: "Berilio", mass: "9.0122", cat: "alkaline-earth", row: 2, col: 2, config: "[He] 2s²", phase: "Sólido", discYear: "1798", discBy: "Louis-Nicolas Vauquelin", electroneg: "1.57", radius: "112 pm", oxStates: "+2", mp: "1287 °C", bp: "2469 °C", summary: "Metal ligero y rígido. Utilizado como moderador y reflector de neutrones en reactores nucleares y espejos aeroespaciales (Telescopio James Webb).", history: "Aislado originalmente en forma de óxido en esmeraldas y berilos. Inicialmente se le llamó Glucinium por el sabor dulce de sus sales tóxicas." },
+            { n: 5, s: "B", name: "Boro", mass: "10.81", cat: "metalloid", row: 2, col: 13, config: "[He] 2s² 2p¹", phase: "Sólido", discYear: "1808", discBy: "Gay-Lussac & Thénard", electroneg: "2.04", radius: "87 pm", oxStates: "+3", mp: "2076 °C", bp: "3927 °C", summary: "Semimetal con química compleja de cúmulos (boranos). Crucial para vidrios borosilicatados, semiconductores p-type y dopaje.", history: "Aislado por reducción del ácido bórico. Su nombre deriva del árabe 'buraq', referido al bórax mineral conocido desde la antigüedad." },
+            { n: 6, s: "C", name: "Carbono", mass: "12.011", cat: "reactive-nonmetal", row: 2, col: 14, config: "[He] 2s² 2p²", phase: "Sólido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "2.55", radius: "67 pm", oxStates: "-4, -2, +2, +4", mp: "3550 °C", bp: "4027 °C", summary: "Base de la química orgánica y la vida. Exhibe alotropía fascinante: grafito, diamante, grafeno y fullerenos.", history: "Sus formas como el carbón vegetal y el diamante eran conocidas prehistóricamente. Lavoisier demostró en 1772 que el diamante era carbono puro." },
+            { n: 7, s: "N", name: "Nitrógeno", mass: "14.007", cat: "reactive-nonmetal", row: 2, col: 15, config: "[He] 2s² 2p³", phase: "Gas", discYear: "1772", discBy: "Daniel Rutherford", electroneg: "3.04", radius: "56 pm", oxStates: "-3, -2, -1, +1, +2, +3, +4, +5", mp: "-210.0 °C", bp: "-195.8 °C", summary: "Componente del 78% de la atmósfera terrestre. La fijación química (proceso Haber-Bosch) es vital para fertilizantes y sintesís de aminoácidos.", history: "Rutherford lo denominó 'aire nocivo' o 'mephitic air'. Chaptal acuñó Nitrógeno en 1790 del griego 'nitron' y 'genes' (generador de nitro)." },
+            { n: 8, s: "O", name: "Oxígeno", mass: "15.999", cat: "reactive-nonmetal", row: 2, col: 16, config: "[He] 2s² 2p⁴", phase: "Gas", discYear: "1774", discBy: "Priestley & Scheele", electroneg: "3.44", radius: "48 pm", oxStates: "-2, -1, +1, +2", mp: "-218.8 °C", bp: "-183.0 °C", summary: "Elemento altamente electronegativo. Aceptor final de electrones en la respiración celular y oxidante industrial primario.", history: "Scheele lo produjo antes pero Priestley publicó primero. Lavoisier lo nombró 'generador de ácidos' creyendo que era indispensable en todos los ácidos." },
+            { n: 9, s: "F", name: "Flúor", mass: "18.998", cat: "reactive-nonmetal", row: 2, col: 17, config: "[He] 2s² 2p⁵", phase: "Gas", discYear: "1886", discBy: "Henri Moissan", electroneg: "3.98", radius: "42 pm", oxStates: "-1", mp: "-219.7 °C", bp: "-188.1 °C", summary: "El elemento más electronegativo y reactivo. Utilizado en fluoración de polímeros (Teflón), fármacos y enriquecimiento de uranio (UF6).", history: "Causó graves envenenamientos a químicos precursores ('mártires del flúor'). Moissan usó electrólisis a baja temperatura y obtuvo el Premio Nobel." },
+            { n: 10, s: "Ne", name: "Neón", mass: "20.180", cat: "noble-gas", row: 2, col: 18, config: "[He] 2s² 2p⁶", phase: "Gas", discYear: "1898", discBy: "Ramsay & Travers", electroneg: "N/A", radius: "38 pm", oxStates: "0", mp: "-248.6 °C", bp: "-246.1 °C", summary: "Gas noble inerte con espectro de emisión rojo-anaranjado característico. Utilizado en tubos de descarga, criogenia y láseres He-Ne.", history: "Descubierto mediante fraccionamiento del aire líquido evaporado. Su nombre proviene del griego 'neos' que significa 'nuevo'." },
+
+            // Periodo 3
+            { n: 11, s: "Na", name: "Sodio", mass: "22.990", cat: "alkali", row: 3, col: 1, config: "[Ne] 3s¹", phase: "Sólido", discYear: "1807", discBy: "Humphry Davy", electroneg: "0.93", radius: "190 pm", oxStates: "+1", mp: "97.8 °C", bp: "883 °C", summary: "Catión extracelular esencial. El sodio metálico es un reductor fuerte en química orgánica y fluido de transferencia térmica en reactores nucleares.", history: "Aislado por Davy mediante electrólisis de hidróxido de sodio fundido (sosa cáustica). Su símbolo proviene del latín 'Natrium'." },
+            { n: 12, s: "Mg", name: "Magnesio", mass: "24.305", cat: "alkaline-earth", row: 3, col: 2, config: "[Ne] 3s²", phase: "Sólido", discYear: "1755", discBy: "Joseph Black / Davy", electroneg: "1.31", radius: "145 pm", oxStates: "+2", mp: "650 °C", bp: "1090 °C", summary: "Centro metálico de la clorofila. Imprescindible en reactivos de Grignard para formación de enlaces carbono-carbono en síntesis orgánica.", history: "Black reconoció que la magnesia alba era un compuesto diferente del calcio. Davy aisló el metal puro en 1808." },
+            { n: 13, s: "Al", name: "Aluminio", mass: "26.982", cat: "post-transition", row: 3, col: 13, config: "[Ne] 3s² 3p¹", phase: "Sólido", discYear: "1825", discBy: "Hans Christian Ørsted", electroneg: "1.61", radius: "118 pm", oxStates: "+3", mp: "660.3 °C", bp: "2470 °C", summary: "Metal de baja densidad y alta resistencia a la corrosión mediante pasivación por Al2O3. Ampliamente usado en ingeniería estructural.", history: "Anteriormente más valioso que el oro debido a la dificultad de su extracción, hasta que Hall y Héroult inventaron el proceso electrolítico en 1886." },
+            { n: 14, s: "Si", name: "Silicio", mass: "28.085", cat: "metalloid", row: 3, col: 14, config: "[Ne] 3s² 3p²", phase: "Sólido", discYear: "1824", discBy: "Jöns Jacob Berzelius", electroneg: "1.90", radius: "111 pm", oxStates: "-4, +2, +4", mp: "1414 °C", bp: "3265 °C", summary: "Pilar de la microelectrónica y semiconductores. Los silicatos componen la mayor parte de la corteza terrestre.", history: "Berzelius lo aisló haciendo reaccionar fluorosilicato de potasio con potasio. Su nombre deriva del latín 'silex' (sílex o pedernal)." },
+            { n: 15, s: "P", name: "Fósforo", mass: "30.974", cat: "reactive-nonmetal", row: 3, col: 15, config: "[Ne] 3s² 3p³", phase: "Sólido", discYear: "1669", discBy: "Hennig Brand", electroneg: "2.19", radius: "98 pm", oxStates: "-3, +3, +5", mp: "44.1 °C (blanco)", bp: "280 °C", summary: "Estructural en el ADN, ARN y ATP. Sus alotropos (blanco, rojo, negro) varían dramáticamente en reactividad y estabilidad.", history: "Descubierto por el alquimista Henning Brand al destilar orina hervida, fascinado porque el elemento brillaba en la oscuridad (quimioluminiscencia)." },
+            { n: 16, s: "S", name: "Azufre", mass: "32.06", cat: "reactive-nonmetal", row: 3, col: 16, config: "[Ne] 3s² 3p⁴", phase: "Sólido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "2.58", radius: "88 pm", oxStates: "-2, +2, +4, +6", mp: "115.2 °C", bp: "444.6 °C", summary: "Crucial para el ácido sulfúrico (indicador industrial) y puentes disulfuro en la estructura terciaria de proteínas.", history: "Mencionado en la Biblia como 'azufre'. Lavoisier convenció a la comunidad científica de que era un elemento químico puro y no un compuesto." },
+            { n: 17, s: "Cl", name: "Cloro", mass: "35.45", cat: "reactive-nonmetal", row: 3, col: 17, config: "[Ne] 3s² 3p⁵", phase: "Gas", discYear: "1774", discBy: "Carl Wilhelm Scheele", electroneg: "3.16", radius: "79 pm", oxStates: "-1, +1, +3, +5, +7", mp: "-101.5 °C", bp: "-34.0 °C", summary: "Potente agente oxidante y desinfectante. Vital en la síntesis de PVC, solventes clorados y productos farmacéuticos.", history: "Scheele pensó que contenía oxígeno y lo llamó 'ácido muriático desflogistizado'. Humphry Davy demostró en 1810 que era un elemento fundamental." },
+            { n: 18, s: "Ar", name: "Argón", mass: "39.948", cat: "noble-gas", row: 3, col: 18, config: "[Ne] 3s² 3p⁶", phase: "Gas", discYear: "1894", discBy: "Lord Rayleigh & Ramsay", electroneg: "N/A", radius: "71 pm", oxStates: "0", mp: "-189.3 °C", bp: "-185.8 °C", summary: "El gas noble más abundante en la Tierra (0.93%). Usado como atmósfera inerte para soldadura TIG y crecimiento de monocristales de silicio.", history: "Descubierto al notar que el nitrógeno extraído del aire tenía mayor densidad que el sintetizado químicamente. Llamado 'argon' (griego: inerte)." },
+
+            // Periodo 4
+            { n: 19, s: "K", name: "Potasio", mass: "39.098", cat: "alkali", row: 4, col: 1, config: "[Ar] 4s¹", phase: "Sólido", discYear: "1807", discBy: "Humphry Davy", electroneg: "0.82", radius: "243 pm", oxStates: "+1", mp: "63.5 °C", bp: "759 °C", summary: "Catión intracelular principal. Reacciona violentamente con agua produciendo H2. Fundamental para fertilizantes (NPK).", history: "Primer metal aislado por electrólisis a partir de potasa fundida (KOH). Su símbolo K proviene del latín 'Kalium' (árabe: al-qalyah)." },
+            { n: 20, s: "Ca", name: "Calcio", mass: "40.078", cat: "alkaline-earth", row: 4, col: 2, config: "[Ar] 4s²", phase: "Sólido", discYear: "1808", discBy: "Humphry Davy", electroneg: "1.00", radius: "194 pm", oxStates: "+2", mp: "842 °C", bp: "1484 °C", summary: "Estructural en biominerales (hidroxiapatita en huesos). Modulador bioquímico esencial en la señalización celular y contracción muscular.", history: "Los romanos utilizaban la cal (óxido de calcio) para hacer mortero. Davy aisló el metal mediante electrólisis de una mezcla de cal y HgO." },
+            { n: 21, s: "Sc", name: "Escandio", mass: "44.956", cat: "transition", row: 4, col: 3, config: "[Ar] 3d¹ 4s²", phase: "Sólido", discYear: "1879", discBy: "Lars Fredrik Nilson", electroneg: "1.36", radius: "184 pm", oxStates: "+3", mp: "1541 °C", bp: "2836 °C", summary: "Metal de transición ligero. Sus aleaciones con aluminio se emplean en componentes aeroespaciales de alto rendimiento.", history: "Predicho por Mendeleev en 1869 bajo el nombre 'Ekaboro'. Nilson lo descubrió en minerales de euxenita en Escandinavia." },
+            { n: 22, s: "Ti", name: "Titanio", mass: "47.867", cat: "transition", row: 4, col: 4, config: "[Ar] 3d² 4s²", phase: "Sólido", discYear: "1791", discBy: "William Gregor", electroneg: "1.54", radius: "176 pm", oxStates: "+2, +3, +4", mp: "1668 °C", bp: "3287 °C", summary: "Excelente relación resistencia/peso e biocompatibilidad superior. Amplio uso en implantes médicos y turbinas de aviación.", history: "Gregor lo encontró en arena negra ilmenita. Klaproth lo re-descubrió de forma independiente en 1795 y lo nombró por los Titanes de la mitología." },
+            { n: 23, s: "V", name: "Vanadio", mass: "50.942", cat: "transition", row: 4, col: 5, config: "[Ar] 3d³ 4s²", phase: "Sólido", discYear: "1801", discBy: "Andrés Manuel del Río", electroneg: "1.63", radius: "171 pm", oxStates: "+2, +3, +4, +5", mp: "1910 °C", bp: "3407 °C", summary: "Catalizador industrial clave (V2O5 para producción de H2SO4) y aditivo para aceros de alta tenacidad.", history: "Descubierto en México por del Río ('Eritronio'), pero desestimado erróneamente por químicos europeos. Sefström lo redescubrió en 1831." },
+            { n: 24, s: "Cr", name: "Cromo", mass: "51.996", cat: "transition", row: 4, col: 6, config: "[Ar] 3d⁵ 4s¹", phase: "Sólido", discYear: "1797", discBy: "Louis-Nicolas Vauquelin", electroneg: "1.66", radius: "166 pm", oxStates: "+2, +3, +6", mp: "1907 °C", bp: "2671 °C", summary: "Proporciona resistencia a la corrosión en el acero inoxidable. El estado Hexavalente Cr(VI) es altamente tóxico y carcinógeno.", history: "Nombrado a partir del griego 'chroma' (color) debido a los diversos y vívidos colores de sus compuestos químicos sintéticos y minerales." },
+            { n: 25, s: "Mn", name: "Manganeso", mass: "54.938", cat: "transition", row: 4, col: 7, config: "[Ar] 3d⁵ 4s²", phase: "Sólido", discYear: "1774", discBy: "Johan Gottlieb Gahn", electroneg: "1.55", radius: "161 pm", oxStates: "+2, +3, +4, +6, +7", mp: "1246 °C", bp: "2061 °C", summary: "Agente desoxidante en la producción de acero. El KMnO4 es un oxidante estándar en volumetría de redox en laboratorio.", history: "Utilizado en la pigmentación de pinturas rupestres prehistóricas (pirolusita). Gahn aislaría el elemento reduciendo el dióxido con carbono." },
+            { n: 26, s: "Fe", name: "Hierro", mass: "55.845", cat: "transition", row: 4, col: 8, config: "[Ar] 3d⁶ 4s²", phase: "Sólido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "1.83", radius: "156 pm", oxStates: "+2, +3, +6", mp: "1538 °C", bp: "2862 °C", summary: "El metal de transición más utilizado en la corteza terrestre y núcleo celular (Hemoglobina para transporte de O2). Base de la metalurgia siderúrgica.", history: "Su uso define la 'Edad de Hierro'. Los meteoritos de hierro proporcionaron las primeras fuentes de metal procesable antes de los hornos." },
+            { n: 27, s: "Co", name: "Cobalto", mass: "58.933", cat: "transition", row: 4, col: 9, config: "[Ar] 3d⁷ 4s²", phase: "Sólido", discYear: "1735", discBy: "Georg Brandt", electroneg: "1.88", radius: "152 pm", oxStates: "+2, +3", mp: "1495 °C", bp: "2927 °C", summary: "Componente esencial de la Cobalamina (Vitamina B12), súper-aleaciones de alta temperatura y cátodos para baterías de Li-ión.", history: "Los mineros sajones atribuían las emisiones tóxicas al fundir sus menas a los 'kobolds' (duendes). Brandt demostró que un nuevo metal causaba el azul del vidrio." },
+            { n: 28, s: "Ni", name: "Níquel", mass: "58.693", cat: "transition", row: 4, col: 10, config: "[Ar] 3d⁸ 4s²", phase: "Sólido", discYear: "1751", discBy: "Axel Fredrik Cronstedt", electroneg: "1.91", radius: "149 pm", oxStates: "+2, +3", mp: "1455 °C", bp: "2913 °C", summary: "Metal ferromagnético resistente a la corrosión. Utilizado en catalizadores de hidrogenación (Níquel Raney) y acuñación de monedas.", history: "Llamado 'Kupfernickel' (cobre del diablo) por los mineros alemanes porque parecía mineral de cobre pero no producía nada de este metal." },
+            { n: 29, s: "Cu", name: "Cobre", mass: "63.546", cat: "transition", row: 4, col: 11, config: "[Ar] 3d¹⁰ 4s¹", phase: "Sólido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "1.90", radius: "145 pm", oxStates: "+1, +2", mp: "1084.6 °C", bp: "2562 °C", summary: "Excelente conductor térmico y eléctrico. La aleación con estaño produce bronce, hito histórico en el desarrollo de la civilización.", history: "Extraído extensivamente por los romanos en Chipre, de donde deriva su nombre en latín 'Cuprum' (mineral de Chipre)." },
+            { n: 30, s: "Zn", name: "Zinc", mass: "65.38", cat: "transition", row: 4, col: 12, config: "[Ar] 3d¹⁰ 4s²", phase: "Sólido", discYear: "1746", discBy: "Andreas Sigismund Marggraf", electroneg: "1.65", radius: "142 pm", oxStates: "+2", mp: "419.5 °C", bp: "907 °C", summary: "Usado masivamente para galvanizado anticorrosivo del hierro. Cofactor enzimático esencial (anhidrasa carbónica, dedos de zinc).", history: "Utilizado en latón (aleación Zn-Cu) desde la antigüedad. Marggraf demostró en 1746 que podía aislarse reduciendo calamina con carbón." },
+            { n: 31, s: "Ga", name: "Galio", mass: "69.723", cat: "post-transition", row: 4, col: 13, config: "[Ar] 3d¹⁰ 4s² 4p¹", phase: "Sólido", discYear: "1875", discBy: "Paul-Émile Lecoq de Boisbaudran", electroneg: "1.81", radius: "136 pm", oxStates: "+3", mp: "29.76 °C", bp: "2204 °C", summary: "Punto de fusión tan bajo que se funde en la mano human. Esencial para semiconductores de alta velocidad (Arseniuro de Galio, GaAs y GaN).", history: "Primera prueba triunfal de la tabla periódica de Mendeleev, quien predijo sus propiedades exactas bajo el nombre 'Eka-aluminio'." },
+            { n: 32, s: "Ge", name: "Germanio", mass: "72.630", cat: "metalloid", row: 4, col: 14, config: "[Ar] 3d¹⁰ 4s² 4p²", phase: "Sólido", discYear: "1886", discBy: "Clemens Winkler", electroneg: "2.01", radius: "125 pm", oxStates: "+2, +4", mp: "938.3 °C", bp: "2833 °C", summary: "Semiconductor clave en los primeros transistores. Hoy se utiliza en óptica de infrarrojos y fibra óptica.", history: "Otra confirmación histórica de Mendeleev, quien lo nombró 'Ekasilicio'. Winkler lo aisló de la argyrodita en Freiberg." },
+            { n: 33, s: "As", name: "Arsénico", mass: "74.922", cat: "metalloid", row: 4, col: 15, config: "[Ar] 3d¹⁰ 4s² 4p³", phase: "Sólido", discYear: "1250", discBy: "Alberto Magno", electroneg: "2.18", radius: "114 pm", oxStates: "-3, +3, +5", mp: "817 °C (a 28 atm)", bp: "614 °C (sublima)", summary: "Metaloide con conocida toxicidad al interferir con el metabolismo del ATP. Utilizado como dopante semiconductor y en arseniuro de galio.", history: "Sus compuestos eran conocidos venenozos clásicos en Roma y el Renacimiento. San Alberto Magno fue el primero en aislar el elemento puro." },
+            { n: 34, s: "Se", name: "Selenio", mass: "78.971", cat: "reactive-nonmetal", row: 4, col: 16, config: "[Ar] 3d¹⁰ 4s² 4p⁴", phase: "Sólido", discYear: "1817", discBy: "Jöns Jacob Berzelius", electroneg: "2.55", radius: "103 pm", oxStates: "-2, +2, +4, +6", mp: "221 °C", bp: "685 °C", summary: "Exhibe propiedades fotoconductores (conduce electricidad según la luz recibida). Esencial para la enzima selenocisteína.", history: "Descubierto como un residuo en la preparación de ácido sulfúrico. Berzelius lo nombró por Selene, la diosa griega de la Luna." },
+            { n: 35, s: "Br", name: "Bromo", mass: "79.904", cat: "reactive-nonmetal", row: 4, col: 17, config: "[Ar] 3d¹⁰ 4s² 4p⁵", phase: "Líquido", discYear: "1826", discBy: "Antoine Jérôme Balard", electroneg: "2.96", radius: "94 pm", oxStates: "-1, +1, +3, +5", mp: "-7.2 °C", bp: "58.8 °C", summary: "Único no metal líquido a temperatura ambiente. Agente bromante en síntesis orgánica y retardantes de llama.", history: "Balard aisló el líquido volátil marrón de cenizas de algas marinas y salmuera. El nombre proviene del griego 'bromos' (hedor)." },
+            { n: 36, s: "Kr", name: "Kriptón", mass: "83.798", cat: "noble-gas", row: 4, col: 18, config: "[Ar] 3d¹⁰ 4s² 4p⁶", phase: "Gas", discYear: "1898", discBy: "Ramsay & Travers", electroneg: "3.00", radius: "88 pm", oxStates: "0, +2", mp: "-157.4 °C", bp: "-153.2 °C", summary: "Gas noble utilizado en iluminación comercial de alta intensidad y flashes fotográficos. Capaz de formar KrF2 bajo condiciones forzadas.", history: "Hallado en los residuos líquidos del aire hervido. Su nombre proviene del griego 'kryptos' (el oculto)." },
+
+            // Periodo 5
+            { n: 37, s: "Rb", name: "Rubidio", mass: "85.468", cat: "alkali", row: 5, col: 1, config: "[Kr] 5s¹", phase: "Sólido", discYear: "1861", discBy: "Bunsen & Kirchhoff", electroneg: "0.82", radius: "265 pm", oxStates: "+1", mp: "39.3 °C", bp: "688 °C", summary: "Metal alcalino altamente reactivo. Empleado en el desarrollo de relojes atómicos de precisión y atrapado de átomos por láser.", history: "Uno de los primeros elementos descubiertos mediante el espectroscopio de llama, identificado por sus brillantes líneas espectrales rojas." },
+            { n: 38, s: "Sr", name: "Estroncio", mass: "87.62", cat: "alkaline-earth", row: 5, col: 2, config: "[Kr] 5s²", phase: "Sólido", discYear: "1790", discBy: "Adair Crawford", electroneg: "0.95", radius: "219 pm", oxStates: "+2", mp: "777 °C", bp: "1382 °C", summary: "Confiere un color rojo brillante escarlata intenso a la pirotecnia. El isótopo Sr-90 es un subproducto radiactivo relevante.", history: "Identificado en las minas de plomo de la aldea de Strontian (Escocia) por Adair Crawford. Humphry Davy lo aisló electrolíticamente en 1808." },
+            { n: 39, s: "Y", name: "Itrio", mass: "88.906", cat: "transition", row: 5, col: 3, config: "[Kr] 4d¹ 5s²", phase: "Sólido", discYear: "1794", discBy: "Johan Gadolin", electroneg: "1.22", radius: "212 pm", oxStates: "+3", mp: "1526 °C", bp: "3336 °C", summary: "Crucial para los láseres YAG (Yttrium Aluminium Garnet) y superconductores de alta temperatura (YBCO).", history: "Descubierto en la cantera de Ytterby (Suecia), un pequeño pueblo que dio nombre a 4 elementos químicos (Y, Tb, Er, Yb)." },
+            { n: 40, s: "Zr", name: "Zirconio", mass: "91.224", cat: "transition", row: 5, col: 4, config: "[Kr] 4d² 5s²", phase: "Sólido", discYear: "1789", discBy: "Martin Heinrich Klaproth", electroneg: "1.33", radius: "206 pm", oxStates: "+4", mp: "1855 °C", bp: "4409 °C", summary: "Baja sección eficaz de captura de neutrones; material primario para revestimiento de tubos de combustible en reactores nucleares.", history: "Klaproth descubrió la zirconia en la gema circonio. El metal fue obtenido en forma impura por Berzelius en 1824." },
+            { n: 41, s: "Nb", name: "Niobio", mass: "92.906", cat: "transition", row: 5, col: 5, config: "[Kr] 4d⁴ 5s¹", phase: "Sólido", discYear: "1801", discBy: "Charles Hatchett", electroneg: "1.6", radius: "198 pm", oxStates: "+3, +5", mp: "2477 °C", bp: "4744 °C", summary: "Utilizado en aleaciones super-conductoras de imanes RMN y aceros microaleados para oleoductos de alta presión.", history: "Inicialmente llamado 'Columbio'. Se resolvió en 1949 renombrarlo Niobio en honor a Níobe, hija de Tántalo, debido a su similitud con el Tántalo." },
+            { n: 42, s: "Mo", name: "Molibdeno", mass: "95.95", cat: "transition", row: 5, col: 6, config: "[Kr] 4d⁵ 5s¹", phase: "Sólido", discYear: "1778", discBy: "Carl Wilhelm Scheele", electroneg: "2.16", radius: "190 pm", oxStates: "+2, +3, +4, +5, +6", mp: "2623 °C", bp: "4639 °C", summary: "Cofactor esencial en metaloenzimas como la nitrogenasa biológica. Otorga dureza y resistencia a la corrosión a altas T al acero.", history: "A menudo confundido con el grafito y la galena. Scheele demostró que no contenía plomo y produjo el óxido ácido en 1778." },
+            { n: 43, s: "Tc", name: "Tecnecio", mass: "(98)", cat: "transition", row: 5, col: 7, config: "[Kr] 4d⁵ 5s²", phase: "Sólido", discYear: "1937", discBy: "Perrier & Segrè", electroneg: "1.9", radius: "183 pm", oxStates: "+4, +7", mp: "2157 °C", bp: "4265 °C", summary: "El elemento sintético más ligero. El isómero Tc-99m es el radiofármaco diagnosticador más utilizado en medicina nuclear.", history: "Primer elemento producido artificialmente mediante el bombardeo de molibdeno con deuterones en el ciclotrón de Berkeley. Del griego 'technetos' (artificial)." },
+            { n: 44, s: "Ru", name: "Rutenio", mass: "101.07", cat: "transition", row: 5, col: 8, config: "[Kr] 4d⁷ 5s¹", phase: "Sólido", discYear: "1844", discBy: "Karl Ernst Claus", electroneg: "2.2", radius: "178 pm", oxStates: "+2, +3, +4, +8", mp: "2334 °C", bp: "4150 °C", summary: "Metal del grupo del platino. Utilizado en catalizadores organometálicos (catalizador de Grubbs para metátesis de olefinas).", history: "Claus aislando el metal puro del platino crudo de los Urales. Lo nombró Rutenio en honor a Ruthenia, el nombre en latín de Rusia." },
+            { n: 45, s: "Rh", name: "Rodio", mass: "102.91", cat: "transition", row: 5, col: 9, config: "[Kr] 4d⁸ 5s¹", phase: "Sólido", discYear: "1803", discBy: "William Hyde Wollaston", electroneg: "2.28", radius: "173 pm", oxStates: "+3", mp: "1964 °C", bp: "3695 °C", summary: "Metal precioso extremadamente valioso. Agente catalítico principal en los convertidores catalíticos de automóviles para reducir NOx.", history: "Wollaston lo descubrió en mineral de platino tras precipitar el paladio. Lo llamó 'Rhodium' por el color rosa profundo de sus sales diluidas." },
+            { n: 46, s: "Pd", name: "Paladio", mass: "106.42", cat: "transition", row: 5, col: 10, config: "[Kr] 4d¹⁰", phase: "Sólido", discYear: "1803", discBy: "William Hyde Wollaston", electroneg: "2.20", radius: "169 pm", oxStates: "0, +2, +4", mp: "1554.9 °C", bp: "2963 °C", summary: "Capaz de absorber hasta 900 veces su volumen en gas Hidrógeno. Catalizador estrella en acoplamientos cruzados C-C (Premio Nobel 2010).", history: "Nombrado en honor al asteroide Palas, que había sido descubierto muy recientemente en 1802 por Heinrich Olbers." },
+            { n: 47, s: "Ag", name: "Plata", mass: "107.87", cat: "transition", row: 5, col: 11, config: "[Kr] 4d¹⁰ 5s¹", phase: "Sólido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "1.93", radius: "165 pm", oxStates: "+1", mp: "961.8 °C", bp: "2162 °C", summary: "El elemento con la mayor conductividad eléctrica y térmica de todos los metales. Usado en electrónica, joyería y espejos ópticos.", history: "Conocido desde los albores de la humanidad. Su símbolo químico Ag procede del término latino 'Argentum' (brillante o blanco)." },
+            { n: 48, s: "Cd", name: "Cadmio", mass: "112.41", cat: "transition", row: 5, col: 12, config: "[Kr] 4d¹⁰ 5s²", phase: "Sólido", discYear: "1817", discBy: "Stromeyer & Hermann", electroneg: "1.69", radius: "161 pm", oxStates: "+2", mp: "321.1 °C", bp: "767 °C", summary: "Utilizado en barras de control de reactores nucleares (alta captura de neutrones), baterías Ni-Cd y pigmentos tóxicos.", history: "Descubierto como una impureza en el carbonato de zinc. Su nombre proviene de 'kadmeia', el término griego para la calamina." },
+            { n: 49, s: "In", name: "Indio", mass: "114.82", cat: "post-transition", row: 5, col: 13, config: "[Kr] 4d¹⁰ 5s² 5p¹", phase: "Sólido", discYear: "1863", discBy: "Reich & Richter", electroneg: "1.78", radius: "156 pm", oxStates: "+3", mp: "156.6 °C", bp: "2072 °C", summary: "Componente esencial del Óxido de Indio y Estaño (ITO), película transparente conductora de todas las pantallas táctiles modernas.", history: "Descubierto al inspeccionar minerales de zinc por espectroscopia. Fue nombrado Indio por la prominente línea de emisión de color azul índigo." },
+            { n: 50, s: "Sn", name: "Estaño", mass: "118.71", cat: "post-transition", row: 5, col: 14, config: "[Kr] 4d¹⁰ 5s² 5p²", phase: "Sólido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "1.96", radius: "145 pm", oxStates: "+2, +4", mp: "231.9 °C", bp: "2602 °C", summary: "Usado masivamente en soldadura blanda de electrónica y recubrimientos protectores. Sufre peste del estaño (alotropía α-β a bajas T).", history: "Aleado con cobre dio origen a la 'Edad del Bronce' alrededor del 3000 a.C. Su símbolo Sn proviene del latín 'Stannum'." },
+            { n: 51, s: "Sb", name: "Antimonio", mass: "121.76", cat: "metalloid", row: 5, col: 15, config: "[Kr] 4d¹⁰ 5s² 5p³", phase: "Sólido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "2.05", radius: "133 pm", oxStates: "-3, +3, +5", mp: "630.6 °C", bp: "1587 °C", summary: "Aditivo endurecedor de plomo para baterías de acumuladores, retardantes de llama (Sb2O3) y semiconductores por infrarrojos.", history: "El sulfuro de antimonio (estibina) se usaba como cosmético de ojos en el antiguo Egipto. Símbolo Sb procede del latín 'Stibium'." },
+            { n: 52, s: "Te", name: "Telurio", mass: "127.60", cat: "metalloid", row: 5, col: 16, config: "[Kr] 4d¹⁰ 5s² 5p⁴", phase: "Sólido", discYear: "1782", discBy: "Franz-Joseph Müller von Reichenstein", electroneg: "2.10", radius: "123 pm", oxStates: "-2, +2, +4, +6", mp: "449.5 °C", bp: "988 °C", summary: "Semiconductor p-type. Utilizado en células solares de Telururo de Cadmio (CdTe) y discos ópticos reescribibles.", history: "Hallado en minas de oro de Transilvania. Klaproth aisló el elemento en 1798 y lo nombró por la Tierra (latín: 'tellus')." },
+            { n: 53, s: "I", name: "Yodo", mass: "126.90", cat: "reactive-nonmetal", row: 5, col: 17, config: "[Kr] 4d¹⁰ 5s² 5p⁵", phase: "Sólido", discYear: "1811", discBy: "Bernard Courtois", electroneg: "2.66", radius: "115 pm", oxStates: "-1, +1, +3, +5, +7", mp: "113.7 °C", bp: "184.3 °C", summary: "Sublima a vapores violeta. Indispensable en la síntesis biológica de hormonas tiroideas (tiroxina) y antiséptico tópico.", history: "Courtois lo halló accidentalmente al añadir ácido sulfúrico concentrado a cenizas de algas marinas durante las guerras napoleónicas." },
+            { n: 54, s: "Xe", name: "Xenón", mass: "131.29", cat: "noble-gas", row: 5, col: 18, config: "[Kr] 4d¹⁰ 5s² 5p⁶", phase: "Gas", discYear: "1898", discBy: "Ramsay & Travers", electroneg: "2.60", radius: "108 pm", oxStates: "0, +2, +4, +6, +8", mp: "-111.7 °C", bp: "-108.1 °C", summary: "Primer gas noble en formar compuestos estables (XePtF6 por Neil Bartlett en 1962). Propulsor iónico en naves espaciales.", history: "Aislado tras la destilación fraccionada de aire líquido. Deriva del griego 'xenos' que significa 'extraño' o 'forastero'." },
+
+            // Periodo 6
+            { n: 55, s: "Cs", name: "Cesio", mass: "132.91", cat: "alkali", row: 6, col: 1, config: "[Xe] 6s¹", phase: "Sólido", discYear: "1860", discBy: "Bunsen & Kirchhoff", electroneg: "0.79", radius: "298 pm", oxStates: "+1", mp: "28.5 °C", bp: "671 °C", summary: "La definición exacta del segundo SI se basa en la frecuencia de la transición hiperfina del estado fundamental del Cation Cs-133.", history: "Primer elemento descubierto espectroscópicamente por Bunsen y Kirchhoff. Su nombre deriva del latín 'caesius' (azul cielo)." },
+            { n: 56, s: "Ba", name: "Bario", mass: "137.33", cat: "alkaline-earth", row: 6, col: 2, config: "[Xe] 6s²", phase: "Sólido", discYear: "1808", discBy: "Humphry Davy", electroneg: "0.89", radius: "253 pm", oxStates: "+2", mp: "727 °C", bp: "1897 °C", summary: "El Sulfato de Bario (BaSO4) es radiopaco y se utiliza como contraste gastrointestinal en radiología diagnóstica.", history: "La barita (óxido) era conocida por los alquimistas por su densidad elevada. Davy la aisló electrolíticamente con mercurio." },
+            
+            // LANTÁNIDOS (57 a 71 - Renderizados aparte pero lógicamente del periodo 6)
+            { n: 57, s: "La", name: "Lantano", mass: "138.91", cat: "lanthanide", row: 8, col: 4, config: "[Xe] 5d¹ 6s²", phase: "Sólido", discYear: "1839", discBy: "Carl Gustaf Mosander", electroneg: "1.10", radius: "226 pm", oxStates: "+3", mp: "920 °C", bp: "3464 °C", summary: "Da nombre a la serie de los Lantánidos. Usado en catalizadores de craqueo catalítico de petróleo y aleaciones Mischmetal.", history: "Mosander lo encontró oculto como impureza en muestras de nitrato de cerio. Del griego 'lanthanein' (yacer oculto)." },
+            { n: 58, s: "Ce", name: "Cerio", mass: "140.12", cat: "lanthanide", row: 8, col: 5, config: "[Xe] 4f¹ 5d¹ 6s²", phase: "Sólido", discYear: "1803", discBy: "Klaproth / Berzelius", electroneg: "1.12", radius: "210 pm", oxStates: "+3, +4", mp: "798 °C", bp: "3443 °C", summary: "El lantánido más abundante. El CeO2 es un excelente pulidor óptico y catalizador para la conversión de emisiones de escape.", history: "Descubierto simultáneamente en Suecia y Alemania. Recibió su nombre en honor al planeta enano Ceres, recién descubierto en 1801." },
+            { n: 59, s: "Pr", name: "Praseodimio", mass: "140.91", cat: "lanthanide", row: 8, col: 6, config: "[Xe] 4f³ 6s²", phase: "Sólido", discYear: "1885", discBy: "Carl Auer von Welsbach", electroneg: "1.13", radius: "247 pm", oxStates: "+3", mp: "931 °C", bp: "3520 °C", summary: "Proporciona una coloración verde amarilla intensa a vidrios y esmaltes. Usado en imanes permanentes de alta potencia (NdPrFeB).", history: "Auer von Welsbach logró separar el 'didimio' (que se creía un elemento único) en dos tierras raras: Praseodimio y Neodimio." },
+            { n: 60, s: "Nd", name: "Neodimio", mass: "144.24", cat: "lanthanide", row: 8, col: 7, config: "[Xe] 4f⁴ 6s²", phase: "Sólido", discYear: "1885", discBy: "Carl Auer von Welsbach", electroneg: "1.14", radius: "206 pm", oxStates: "+3", mp: "1024 °C", bp: "3074 °C", summary: "Pilar de los imanes permanentes más potentes conocidos (Nd2Fe14B) indispensables para motores de VE y turbinas eólicas.", history: "Separado del 'didimio'. Su nombre proviene del griego 'neos didymos' (nuevo gemelo)." },
+            { n: 61, s: "Pm", name: "Prometio", mass: "(145)", cat: "lanthanide", row: 8, col: 8, config: "[Xe] 4f⁵ 6s²", phase: "Sólido", discYear: "1945", discBy: "Marinsky, Glendenin & Coryell", electroneg: "1.13", radius: "205 pm", oxStates: "+3", mp: "1042 °C", bp: "3000 °C", summary: "El único lantánido radiactivo sin isótopos estables. Utilizado en fuentes lumínicas beta-voltaicas de larga duración.", history: "Sintetizado en los laboratorios de Oak Ridge durante el Proyecto Manhattan a partir de productos de fisión del Uranio." },
+            { n: 62, s: "Sm", name: "Samario", mass: "150.36", cat: "lanthanide", row: 8, col: 9, config: "[Xe] 4f⁶ 6s²", phase: "Sólido", discYear: "1879", discBy: "Paul-Émile Lecoq de Boisbaudran", electroneg: "1.17", radius: "238 pm", oxStates: "+2, +3", mp: "1072 °C", bp: "1794 °C", summary: "Imanes de Samario-Cobalto (SmCo) con altísima resistencia a la desmagnetización térmica a elevadas temperaturas.", history: "Primer elemento nombrado en honor a una persona viva o real: el ingeniero de minas ruso Vasily Samarsky-Bykhovets." },
+            { n: 63, s: "Eu", name: "Europio", mass: "151.96", cat: "lanthanide", row: 8, col: 10, config: "[Xe] 4f⁷ 6s²", phase: "Sólido", discYear: "1901", discBy: "Eugène-Anatole Demarçay", electroneg: "1.20", radius: "231 pm", oxStates: "+2, +3", mp: "822 °C", bp: "1529 °C", summary: "El lantánido más reactivo. Los fósforos de europio (Eu3+) producen la emisión roja en pantallas tricolor y billetes de Euro.", history: "Aislado en estado relativamente puro por Demarçay mediante cristalización fraccionada repetida del nitrato de samario-magnesio." },
+            { n: 64, s: "Gd", name: "Gadolinio", mass: "157.25", cat: "lanthanide", row: 8, col: 11, config: "[Xe] 4f⁷ 5d¹ 6s²", phase: "Sólido", discYear: "1880", discBy: "Jean Charles Galissard de Marignac", electroneg: "1.20", radius: "233 pm", oxStates: "+3", mp: "1313 °C", bp: "3273 °C", summary: "Siete electrones no apareados en la capa 4f. Sus complejos paramagnéticos (Gd-DTPA) son agentes de contraste estándar en RMN.", history: "Nombrado en honor a Johan Gadolin, el químico finlandés pionero en la investigación de las tierras raras." },
+            { n: 65, s: "Tb", name: "Terbio", mass: "158.93", cat: "lanthanide", row: 8, col: 12, config: "[Xe] 4f⁹ 6s²", phase: "Sólido", discYear: "1843", discBy: "Carl Gustaf Mosander", electroneg: "1.20", radius: "225 pm", oxStates: "+3, +4", mp: "1356 °C", bp: "3230 °C", summary: "Utilizado en fósforos verdes de tubos de Rayos Catódicos y aleaciones magnetostrictivas Terfenol-D.", history: "Extraído de la yttria por Mosander. Nombrado en referencia a la cantera sueca de Ytterby." },
+            { n: 66, s: "Dy", name: "Disprosio", mass: "162.50", cat: "lanthanide", row: 8, col: 13, config: "[Xe] 4f¹⁰ 6s²", phase: "Sólido", discYear: "1886", discBy: "Paul-Émile Lecoq de Boisbaudran", electroneg: "1.22", radius: "228 pm", oxStates: "+3", mp: "1412 °C", bp: "2567 °C", summary: "Posee una de las susceptibilidades magnéticas más altas. Aditivo en imanes NdFeB para evitar su desmagnetización.", history: "A Boisbaudran le tomó 30 cristalizaciones consecutivas para aislar su óxido. Nombre del griego 'dysprositos' (difícil de obtener)." },
+            { n: 67, s: "Ho", name: "Holmio", mass: "164.93", cat: "lanthanide", row: 8, col: 14, config: "[Xe] 4f¹¹ 6s²", phase: "Sólido", discYear: "1878", discBy: "Marc Delafontaine / Soret", electroneg: "1.23", radius: "226 pm", oxStates: "+3", mp: "1474 °C", bp: "2700 °C", summary: "Mayor momento magnético de todos los elementos naturales. Utilizado en láseres Holmium-YAG para procedimientos quirúrgicos.", history: "Descubierto mediante análisis espectroscópico. Per Teodor Cleve lo aisló de la erbia y lo nombró por Estocolmo (latín: Holmia)." },
+            { n: 68, s: "Er", name: "Erbio", mass: "167.26", cat: "lanthanide", row: 8, col: 15, config: "[Xe] 4f¹² 6s²", phase: "Sólido", discYear: "1843", discBy: "Carl Gustaf Mosander", electroneg: "1.24", radius: "226 pm", oxStates: "+3", mp: "1529 °C", bp: "2868 °C", summary: "Amplificadores de Fibra Dopada con Erbio (EDFA) transmiten las señales ópticas de la infraestructura global de internet.", history: "Mosander separó la yttria cruda en yttria pura, erbia y terbia. También bautizado por el pueblo de Ytterby." },
+            { n: 69, s: "Tm", name: "Tulio", mass: "168.93", cat: "lanthanide", row: 8, col: 16, config: "[Xe] 4f¹³ 6s²", phase: "Sólido", discYear: "1879", discBy: "Per Teodor Cleve", electroneg: "1.25", radius: "222 pm", oxStates: "+3", mp: "1545 °C", bp: "1950 °C", summary: "El segundo lantánido más escaso. Bombardeado en reactores para producir Tm-170, fuente portátil de Rayos X médicos.", history: "Descubierto por Cleve al buscar impurezas en erbia. Su nombre Thulium deriva de Thule, la región escandinava mítica." },
+            { n: 70, s: "Yb", name: "Iterbio", mass: "173.05", cat: "lanthanide", row: 8, col: 17, config: "[Xe] 4f¹⁴ 6s²", phase: "Sólido", discYear: "1878", discBy: "Jean Charles Galissard de Marignac", electroneg: "1.10", radius: "222 pm", oxStates: "+2, +3", mp: "824 °C", bp: "1196 °C", summary: "Capa 4f completamente llena. Utilizado en láseres ópticos de fibra dopada e investigación de relojes atómicos ópticos.", history: "Galissard de Marignac separó este componente de la erbia y le dio el cuarto nombre derivado de Ytterby." },
+            { n: 71, s: "Lu", name: "Lutecio", mass: "174.97", cat: "lanthanide", row: 8, col: 18, config: "[Xe] 4f¹⁴ 5d¹ 6s²", phase: "Sólido", discYear: "1907", discBy: "Georges Urbain / von Welsbach", electroneg: "1.27", radius: "217 pm", oxStates: "+3", mp: "1663 °C", bp: "3402 °C", summary: "El lantánido más duro y denso. El isótopo Lu-177 es una importante terapia dirigida de radionúclidos contra tumores en oncología.", history: "Descubierto de forma independiente por varios científicos. Urbain lo nombró por Lutetia, el antiguo nombre latino de París." },
+
+            // Continuación Periodo 6
+            { n: 72, s: "Hf", name: "Hafnio", mass: "178.49", cat: "transition", row: 6, col: 4, config: "[Xe] 4f¹⁴ 5d² 6s²", phase: "Sólido", discYear: "1923", discBy: "Coster & de Hevesy", electroneg: "1.3", radius: "208 pm", oxStates: "+4", mp: "2233 °C", bp: "4603 °C", summary: "Propiedades químicas idénticas al Zr. Usado en aislantes High-k para puertas de transistores nanométricos de procesadores.", history: "Descubierto mediante espectroscopia de rayos X en Copenhague. Su nombre proviene de Hafnia, el nombre en latín de Copenhague." },
+            { n: 73, s: "Ta", name: "Tántalo", mass: "180.95", cat: "transition", row: 6, col: 5, config: "[Xe] 4f¹⁴ 5d³ 6s²", phase: "Sólido", discYear: "1802", discBy: "Anders Gustaf Ekeberg", electroneg: "1.5", radius: "200 pm", oxStates: "+5", mp: "3017 °C", bp: "5458 °C", summary: "Capacitores de tántalo ofrecen una capacidad extremadamente alta por volumen en smartphones y circuitos miniaturizados.", history: "Llamado así por Tántalo de la mitología griega, condenado a sufrir hambre y sed sumergido en agua, por la incapacidad del óxido de absorber ácido." },
+            { n: 74, s: "W", name: "Wolframio", mass: "183.84", cat: "transition", row: 6, col: 6, config: "[Xe] 4f¹⁴ 5d⁴ 6s²", phase: "Sólido", discYear: "1783", discBy: "Hermanos Elhuyar", electroneg: "2.36", radius: "193 pm", oxStates: "+2, +4, +5, +6", mp: "3422 °C", bp: "5555 °C", summary: "El punto de fusión más alto de todos los metales puros. Carburo de wolframio (WC) imprescindible para brocas e instrumental de corte.", history: "Aislado por los hermanos españoles Juan José y Fausto Elhuyar en Bergara. Su símbolo W procede del mineral 'Wolframita'." },
+            { n: 75, s: "Re", name: "Renio", mass: "186.21", cat: "transition", row: 6, col: 7, config: "[Xe] 4f¹⁴ 5d⁵ 6s²", phase: "Sólido", discYear: "1925", discBy: "Noddack, Tacke & Berg", electroneg: "1.9", radius: "188 pm", oxStates: "+4, +6, +7", mp: "3186 °C", bp: "5596 °C", summary: "Súper-aleaciones con renio soportan el entorno extremo del interior de las turbinas de reacción de motores de aviación.", history: "El último elemento estable de la tabla periódica hallado en la naturaleza. Nombrado en honor al río Rín (Rhenus en latín)." },
+            { n: 76, s: "Os", name: "Osmio", mass: "190.23", cat: "transition", row: 6, col: 8, config: "[Xe] 4f¹⁴ 5d⁶ 6s²", phase: "Sólido", discYear: "1803", discBy: "Smithson Tennant", electroneg: "2.2", radius: "185 pm", oxStates: "+4, +8", mp: "3033 °C", bp: "5012 °C", summary: "El elemento natural más denso de la Tierra (22.59 g/cm³). Su tetraóxido OsO4 es un reactivo de dihidroxilación oxidativa en orgánia.", history: "Descubierto en el residuo insoluble de platino. Tennant lo nombró del griego 'osme' (olor) debido al olor acre tóxico de su tetróxido." },
+            { n: 77, s: "Ir", name: "Iridio", mass: "192.22", cat: "transition", row: 6, col: 9, config: "[Xe] 4f¹⁴ 5d⁷ 6s²", phase: "Sólido", discYear: "1803", discBy: "Smithson Tennant", electroneg: "2.20", radius: "180 pm", oxStates: "+3, +4", mp: "2446 °C", bp: "4428 °C", summary: "El metal más resistente a la corrosión. La capa K-Pg rica en Iridio marcó la evidencia del impacto de asteroide que extinguió los dinosaurios.", history: "Descubierto junto con el osmio. Tennant lo nombró por Iris, la diosa del arcoíris, por los vivos y variados colores de sus sales." },
+            { n: 78, s: "Pt", name: "Platino", mass: "195.08", cat: "transition", row: 6, col: 10, config: "[Xe] 4f¹⁴ 5d⁹ 6s¹", phase: "Sólido", discYear: "1735", discBy: "Antonio de Ulloa", electroneg: "2.28", radius: "177 pm", oxStates: "+2, +4", mp: "1768.3 °C", bp: "3825 °C", summary: "Inerte y noble. Fármacos quimioterapéuticos basados en platino (Cisplatino) son pilares en el tratamiento del cáncer.", history: "Observado por Ulloa en Sudamérica. Los conquistadores lo llamaban despectivamente 'platina' (plata menor) por no poder fundirlo." },
+            { n: 79, s: "Au", name: "Oro", mass: "196.97", cat: "transition", row: 6, col: 11, config: "[Xe] 4f¹⁴ 5d¹⁰ 6s¹", phase: "Sólido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "2.54", radius: "174 pm", oxStates: "+1, +3", mp: "1064.1 °C", bp: "2970 °C", summary: "El metal más maleable y dúctil. Su inercia frente a la oxidación lo convierte en el estándar histórico monetario y de conectores electrónicos.", history: "Uso documentado desde el V milenio a.C. Símbolo Au proveniente de 'Aurum' (aurora resplandeciente en latín)." },
+            { n: 80, s: "Hg", name: "Mercurio", mass: "200.59", cat: "transition", row: 6, col: 12, config: "[Xe] 4f¹⁴ 5d¹⁰ 6s²", phase: "Líquido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "2.00", radius: "171 pm", oxStates: "+1, +2", mp: "-38.8 °C", bp: "356.7 °C", summary: "Único metal líquido a TPN debido a fuertes efectos relativistas en la contracción del orbital 6s. Altamente neurotóxico.", history: "Conocido en antiguas civilizaciones chinas e indias. Símbolo Hg viene de 'Hydrargyrum' (agua de plata o plata líquida en griego)." },
+            { n: 81, s: "Tl", name: "Talio", mass: "204.38", cat: "post-transition", row: 6, col: 13, config: "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹", phase: "Sólido", discYear: "1861", discBy: "William Crookes", electroneg: "1.62", radius: "156 pm", oxStates: "+1, +3", mp: "304 °C", bp: "1473 °C", summary: "Extremadamente tóxico (antiguo raticida infame). Imita al potasio en los canales iónicos celulares humanos.", history: "Crookes lo descubrió por espectroscopia al observar una brillante línea espectral verde. Del griego 'thallos' (brote verde)." },
+            { n: 82, s: "Pb", name: "Plomo", mass: "207.2", cat: "post-transition", row: 6, col: 14, config: "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²", phase: "Sólido", discYear: "Antigüedad", discBy: "Conocido desde la antigüedad", electroneg: "2.33", radius: "154 pm", oxStates: "+2, +4", mp: "327.5 °C", bp: "1749 °C", summary: "Denso y blando. Antiguamente usado en tuberías y pinturas. Neurotoxina acumulativa grave que causa saturnismo.", history: "Usado masivamente por el Imperio Romano en acueductos y utensilios. Su símbolo Pb procede del término latino 'Plumbum'." },
+            { n: 83, s: "Bi", name: "Bismuto", mass: "208.98", cat: "post-transition", row: 6, col: 15, config: "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³", phase: "Sólido", discYear: "1753", discBy: "Claude François Geoffroy", electroneg: "2.02", radius: "143 pm", oxStates: "+3, +5", mp: "271.5 °C", bp: "1564 °C", summary: "El metal pesado no tóxico más estable. Cristaliza en hermosas estructuras escalonadas iridiscentes con capa de óxido.", history: "Confundido con plomo y estaño durante siglos hasta que Claude Geoffroy demostró que era un elemento totalmente distinto en 1753." },
+            { n: 84, s: "Po", name: "Polonio", mass: "(209)", cat: "post-transition", row: 6, col: 16, config: "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴", phase: "Sólido", discYear: "1898", discBy: "Marie & Pierre Curie", electroneg: "2.0", radius: "135 pm", oxStates: "-2, +2, +4", mp: "254 °C", bp: "962 °C", summary: "Radiactivo extremo emisor Alfa. Usado históricamente en eliminadores de electricidad estática y fuentes de calor espaciales.", history: "Primer elemento descubierto por Marie Curie extrayéndolo de la pechblenda, nombrado en honor a su patria natal, Polonia." },
+            { n: 85, s: "At", name: "Astato", mass: "(210)", cat: "reactive-nonmetal", row: 6, col: 17, config: "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵", phase: "Sólido", discYear: "1940", discBy: "Corson, MacKenzie & Segrè", electroneg: "2.2", radius: "127 pm", oxStates: "-1, +1, +3, +5", mp: "302 °C", bp: "337 °C", summary: "El elemento natural más raro de la corteza terrestre (menos de 30 gramos en todo el planeta en un momento dado).", history: "Sintetizado en el ciclotrón de Berkeley. Bautizado a partir del griego 'astatos' que significa 'inestable'." },
+            { n: 86, s: "Rn", name: "Radón", mass: "(222)", cat: "noble-gas", row: 6, col: 18, config: "[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶", phase: "Gas", discYear: "1900", discBy: "Friedrich Ernst Dorn", electroneg: "N/A", radius: "120 pm", oxStates: "0", mp: "-71 °C", bp: "-61.7 °C", summary: "Gas noble radiactivo denso producto del decaimiento del Uranio. Principal causa de cáncer de pulmón en no fumadores por acumulación doméstica.", history: "Dorn observó que el radio emitía una emanación radiactiva gaseosa a la que llamó 'emanación de radio'." },
+
+            // Periodo 7
+            { n: 87, s: "Fr", name: "Francio", mass: "(223)", cat: "alkali", row: 7, col: 1, config: "[Rn] 7s¹", phase: "Sólido", discYear: "1939", discBy: "Marguerite Perey", electroneg: "0.7", radius: "N/A", oxStates: "+1", mp: "27 °C", bp: "677 °C", summary: "Extremadamente inestable y radiactivo. El segundo elemento más raro en la corteza terrestre después del astato.", history: "Descubierto por Marguerite Perey en el Instituto Curie de París. Último elemento natural en ser aislado de minerales." },
+            { n: 88, s: "Ra", name: "Radio", mass: "(226)", cat: "alkaline-earth", row: 7, col: 2, config: "[Rn] 7s²", phase: "Sólido", discYear: "1898", discBy: "Marie & Pierre Curie", electroneg: "0.9", radius: "283 pm", oxStates: "+2", mp: "700 °C", bp: "1737 °C", summary: "Intensamente radioluminiscente. Antiguamente usado en manecillas de relojes luminosas antes de conocerse su letalidad ósea.", history: "Los Curie aislaron cloruro de radio puro tras procesar toneladas de pechblenda. Nombrado por los rayos de radiación que emitía." },
+
+            // ACTÍNIDOS (89 a 103 - Renderizados aparte pero lógicamente del periodo 7)
+            { n: 89, s: "Ac", name: "Actinio", mass: "(227)", cat: "actinide", row: 9, col: 4, config: "[Rn] 6d¹ 7s²", phase: "Sólido", discYear: "1899", discBy: "André-Louis Debierne", electroneg: "1.1", radius: "260 pm", oxStates: "+3", mp: "1050 °C", bp: "3198 °C", summary: "Da nombre a la serie de los Actínidos. Emisor beta/alfa fuertemente deslumbrante en la oscuridad por su intensa radiactividad.", history: "Descubierto al analizar residuos de pechblenda extraídos por los Curie. Del griego 'aktinos' (rayo de luz)." },
+            { n: 90, s: "Th", name: "Torio", mass: "232.04", cat: "actinide", row: 9, col: 5, config: "[Rn] 6d² 7s²", phase: "Sólido", discYear: "1829", discBy: "Jöns Jacob Berzelius", electroneg: "1.3", radius: "237 pm", oxStates: "+4", mp: "1750 °C", bp: "4788 °C", summary: "Actínido fértil sustituto prometedor del Uranio en reactores de sal fundida de Torio de IV generación más limpios.", history: "Descubierto por Berzelius en una muestra mineral negra enviada desde Noruega. Nombrado en honor al dios nórdico Thor." },
+            { n: 91, s: "Pa", name: "Protactinio", mass: "231.04", cat: "actinide", row: 9, col: 6, config: "[Rn] 5f² 6d¹ 7s²", phase: "Sólido", discYear: "1913", discBy: "Fajans & Göhring / Hahn & Meitner", electroneg: "1.5", radius: "243 pm", oxStates: "+4, +5", mp: "1568 °C", bp: "4027 °C", summary: "Extremadamente tóxico y radiactivo. Precursor inmediato del Actinio por desintegración alfa.", history: "Identificado por Otto Hahn y Lise Meitner en 1918. Nombrado 'pro-actinio' por ser el progenitor del actinio." },
+            { n: 92, s: "U", name: "Uranio", mass: "238.03", cat: "actinide", row: 9, col: 7, config: "[Rn] 5f³ 6d¹ 7s²", phase: "Sólido", discYear: "1789", discBy: "Martin Heinrich Klaproth", electroneg: "1.38", radius: "240 pm", oxStates: "+3, +4, +5, +6", mp: "1132.2 °C", bp: "4131 °C", summary: "El isótopo fisionable U-235 es el combustible primario para plantas nucleares de energía y armamento atómico.", history: "Klaproth lo descubrió en pechblenda y lo nombró por el planeta Urano. Henri Becquerel descubrió la radiactividad usando uranio en 1896." },
+            { n: 93, s: "Np", name: "Neptunio", mass: "(237)", cat: "actinide", row: 9, col: 8, config: "[Rn] 5f⁴ 6d¹ 7s²", phase: "Sólido", discYear: "1940", discBy: "McMillan & Abelson", electroneg: "1.36", radius: "221 pm", oxStates: "+3, +4, +5, +6", mp: "639 °C", bp: "4174 °C", summary: "Primer elemento transuránico sintetizado. Creado bombardeando uranio con neutrones en el ciclotrón de Berkeley.", history: "Bautizado Neptunio por seguir a Uranio en la tabla periódica, al igual que Neptuno sigue a Urano en el sistema solar." },
+            { n: 94, s: "Pu", name: "Plutonio", mass: "(244)", cat: "actinide", row: 9, col: 9, config: "[Rn] 5f⁶ 7s²", phase: "Sólido", discYear: "1940", discBy: "Seaborg, McMillan, Kennedy, Wahl", electroneg: "1.28", radius: "243 pm", oxStates: "+3, +4, +5, +6", mp: "639.4 °C", bp: "3228 °C", summary: "El isótopo Pu-239 es fisionable y base clave de armas nucleares. El Pu-238 impulsa generadores RTG de sondas espaciales (Voyager, Perseverance).", history: "Mantenido en secreto absoluto durante la II Guerra Mundial por el Proyecto Manhattan hasta el lanzamiento de la bomba en 1945." },
+            { n: 95, s: "Am", name: "Americio", mass: "(243)", cat: "actinide", row: 9, col: 10, config: "[Rn] 5f⁷ 7s²", phase: "Sólido", discYear: "1944", discBy: "Seaborg et al.", electroneg: "1.3", radius: "244 pm", oxStates: "+3, +4, +5", mp: "1176 °C", bp: "2607 °C", summary: "Emisor alfa ionizante ampliamente utilizado en detectores de humo ionizantes de uso residencial.", history: "Sintetizado en la Universidad de Chicago. Su nombre fue elegido por analogía con el Europio (homólogo lantánido)." },
+            { n: 96, s: "Cm", name: "Curio", mass: "(247)", cat: "actinide", row: 9, col: 11, config: "[Rn] 5f⁷ 6d¹ 7s²", phase: "Sólido", discYear: "1944", discBy: "Seaborg, James, Ghiorso", electroneg: "1.3", radius: "245 pm", oxStates: "+3, +4", mp: "1345 °C", bp: "3110 °C", summary: "Fuerte emisor alfa que genera intenso calor; utilizado en espectrómetros X-ray para rovers marcianos.", history: "Nombrado en honor a Marie y Pierre Curie, pioneros en el estudio y comprensión de la radiactividad natural." },
+            { n: 97, s: "Bk", name: "Berkelio", mass: "(247)", cat: "actinide", row: 9, col: 12, config: "[Rn] 5f⁹ 7s²", phase: "Sólido", discYear: "1949", discBy: "Seaborg, Thompson, Ghiorso", electroneg: "1.3", radius: "244 pm", oxStates: "+3, +4", mp: "986 °C", bp: "2623 °C", summary: "Sintetizado por bombardeo de Americio con partículas alfa. Utilizado primordialmente como blanco para sintetizar elementos más pesados.", history: "Nombrado en honor a la ciudad de Berkeley (California) y su laboratorio nacional de investigación nuclear." },
+            { n: 98, s: "Cf", name: "Californio", mass: "(251)", cat: "actinide", row: 9, col: 13, config: "[Rn] 5f¹⁰ 7s²", phase: "Sólido", discYear: "1950", discBy: "Seaborg, Thompson, Ghiorso, Street", electroneg: "1.3", radius: "245 pm", oxStates: "+3, +4", mp: "900 °C", bp: "1470 °C", summary: "Potentísima fuente de emisión espontánea de neutrones. Utilizado para iniciar reactores y análisis por activación neutrónica.", history: "Nombrado en honor al estado de California y su Universidad. Seaborg dijo: 'no pudimos resistir la tentación de bautizarlo así'." },
+            { n: 99, s: "Es", name: "Einstenio", mass: "(252)", cat: "actinide", row: 9, col: 14, config: "[Rn] 5f¹¹ 7s²", phase: "Sólido", discYear: "1952", discBy: "Albert Ghiorso et al.", electroneg: "1.3", radius: "245 pm", oxStates: "+3", mp: "860 °C", bp: "N/A", summary: "Producido en cantidades diminutas. Sin aplicaciones fuera de la investigación científica fundamental de la física atómica.", history: "Descubierto inesperadamente entre los escombros radioactivos de la primera prueba de la bomba de hidrógeno 'Ivy Mike'." },
+            { n: 100, s: "Fm", name: "Fermio", mass: "(257)", cat: "actinide", row: 9, col: 15, config: "[Rn] 5f¹² 7s²", phase: "Sólido", discYear: "1952", discBy: "Albert Ghiorso et al.", electroneg: "1.3", radius: "N/A", oxStates: "+3", mp: "1527 °C", bp: "N/A", summary: "El elemento más pesado que puede formarse por captura neutrónica sucesiva. Solo ejecutable en reactores de súper-flujo.", history: "Descubierto también tras la explosión termonuclear Ivy Mike. Nombrado en memoria del físico Enrico Fermi." },
+            { n: 101, s: "Md", name: "Mendelevio", mass: "(258)", cat: "actinide", row: 9, col: 16, config: "[Rn] 5f¹³ 7s²", phase: "Sólido", discYear: "1955", discBy: "Ghiorso, Harvey, Choppin, Seaborg", electroneg: "1.3", radius: "N/A", oxStates: "+2, +3", mp: "827 °C", bp: "N/A", summary: "Sintetizado átomo a átomo mediante bombardeo de Einstenio con helio en un ciclotrón.", history: "Nombrado en honor a Dmitri Mendeleev, creador del concepto de la Tabla Periódica. Un gesto histórico en plena Guerra Fría." },
+            { n: 102, s: "No", name: "Nobelio", mass: "(259)", cat: "actinide", row: 9, col: 17, config: "[Rn] 5f¹⁴ 7s²", phase: "Sólido", discYear: "1966", discBy: "Instituto Flerov (Dubna)", electroneg: "1.3", radius: "N/A", oxStates: "+2, +3", mp: "827 °C", bp: "N/A", summary: "Superpesado sintético inestable. Muestra un estado de oxidación +2 inusualmente estable para un actínido debido a subcapas f llenas.", history: "Disputa de descubrimiento entre el Instituto Nobel de Suecia, Berkeley y Dubna (Rusia). La IUPAC reconoció el crédito finalmente a Dubna." },
+            { n: 103, s: "Lr", name: "Laurencio", mass: "(266)", cat: "actinide", row: 9, col: 18, config: "[Rn] 5f¹⁴ 6d¹ 7s²", phase: "Sólido", discYear: "1961", discBy: "Ghiorso, Sikkeland, Larsh, Latimer", electroneg: "1.3", radius: "N/A", oxStates: "+3", mp: "1627 °C", bp: "N/A", summary: "Último miembro de la serie de los Actínidos. Vida media de sus isótopos medida en pocos segundos.", history: "Nombrado en honor a Ernest Lawrence, inventor del ciclotrón y fundador del Laboratorio Nacional Lawrence Berkeley." },
+
+            // Continuación Periodo 7 (Superpesados Bloque d y p)
+            { n: 104, s: "Rf", name: "Rutherfordio", mass: "(267)", cat: "transition", row: 7, col: 4, config: "[Rn] 5f¹⁴ 6d² 7s²", phase: "Sintético", discYear: "1969", discBy: "Dubna / Berkeley", electroneg: "N/A", radius: "N/A", oxStates: "+4", mp: "N/A", bp: "N/A", summary: "Primer elemento transactínido superpesado. Investigación enfocada en confirmar efectos relativistas orbitales.", history: "Nombrado en honor al 'padre de la física nuclear' Ernest Rutherford. Disputa de nombres conocida como la 'Guerra de los Transfermios'." },
+            { n: 105, s: "Db", name: "Dubnio", mass: "(268)", cat: "transition", row: 7, col: 5, config: "[Rn] 5f¹⁴ 6d³ 7s²", phase: "Sintético", discYear: "1970", discBy: "Dubna / Berkeley", electroneg: "N/A", radius: "N/A", oxStates: "+5", mp: "N/A", bp: "N/A", summary: "Elemento superpesado sintetizado por fusión fría nuclear. Sus isótopos decayen por fisión espontánea.", history: "Nombrado en honor al centro de investigación nuclear JINR ubicado en Dubna, Rusia." },
+            { n: 106, s: "Sg", name: "Seaborgio", mass: "(269)", cat: "transition", row: 7, col: 6, config: "[Rn] 5f¹⁴ 6d⁴ 7s²", phase: "Sintético", discYear: "1974", discBy: "Albert Ghiorso et al.", electroneg: "N/A", radius: "N/A", oxStates: "+6", mp: "N/A", bp: "N/A", summary: "Comportamiento químico similar al wolframio demostrado mediante cromatografía de fases gaseosas en escala de pocos átomos.", history: "Primer elemento nombrado en honor a un científico con vida en ese instante (Glenn T. Seaborg), causando gran debate." },
+            { n: 107, s: "Bh", name: "Bohrio", mass: "(270)", cat: "transition", row: 7, col: 7, config: "[Rn] 5f¹⁴ 6d⁵ 7s²", phase: "Sintético", discYear: "1981", discBy: "GSI Helmholtzzentrum (Alemania)", electroneg: "N/A", radius: "N/A", oxStates: "+7", mp: "N/A", bp: "N/A", summary: "Demostró formar un oxicloruro volátil BhO3Cl, confirmando su lugar en el grupo 7 del manganeso.", history: "Nombrado en honor a Niels Bohr por sus contribuciones a la estructura atómica y mecánica cuántica." },
+            { n: 108, s: "Hs", name: "Hassio", mass: "(277)", cat: "transition", row: 7, col: 8, config: "[Rn] 5f¹⁴ 6d⁶ 7s²", phase: "Sintético", discYear: "1984", discBy: "GSI Darmstadt", electroneg: "N/A", radius: "N/A", oxStates: "+8", mp: "N/A", bp: "N/A", summary: "Forma un tetróxido volátil HsO4 análogo al OsO4, demostrando la validez del grupo 8 en elementos superpesados.", history: "Su nombre deriva del estado alemán de Hesse (en latín 'Hassia'), donde se encuentra el laboratorio GSI." },
+            { n: 109, s: "Mt", name: "Meitnerio", mass: "(278)", cat: "unknown", row: 7, col: 9, config: "[Rn] 5f¹⁴ 6d⁷ 7s²", phase: "Sintético", discYear: "1982", discBy: "GSI Darmstadt", electroneg: "N/A", radius: "N/A", oxStates: "+1, +3, +8, +9", mp: "N/A", bp: "N/A", summary: "Radioactivo extremo. Producido por fusión de Bismuto-209 con Hierro-58.", history: "Nombrado en honor a Lise Meitner, física austriaca pionera en el descubrimiento de la fisión nuclear." },
+            { n: 110, s: "Ds", name: "Darmstadtio", mass: "(281)", cat: "unknown", row: 7, col: 10, config: "[Rn] 5f¹⁴ 6d⁸ 7s²", phase: "Sintético", discYear: "1994", discBy: "GSI Darmstadt", electroneg: "N/A", radius: "N/A", oxStates: "N/A", mp: "N/A", bp: "N/A", summary: "Sintetizado por bombardeo de Plomo-208 con Níquel-64.", history: "Nombrado en honor a la ciudad alemana de Darmstadt, sede del instituto de investigación de iones pesados GSI." },
+            { n: 111, s: "Rg", name: "Roentgenio", mass: "(282)", cat: "unknown", row: 7, col: 11, config: "[Rn] 5f¹⁴ 6d⁹ 7s²", phase: "Sintético", discYear: "1994", discBy: "GSI Darmstadt", electroneg: "N/A", radius: "N/A", oxStates: "N/A", mp: "N/A", bp: "N/A", summary: "Superpesado inestable. Sus propiedades calculadas sugieren intensos efectos relativistas en su química.", history: "Bautizado en honor a Wilhelm Conrad Röntgen, descubridor de los Rayos X." },
+            { n: 112, s: "Cn", name: "Copernicio", mass: "(285)", cat: "transition", row: 7, col: 12, config: "[Rn] 5f¹⁴ 6d¹⁰ 7s²", phase: "Sintético / Gas probable", discYear: "1996", discBy: "GSI Darmstadt", electroneg: "N/A", radius: "N/A", oxStates: "+2", mp: "N/A", bp: "84 °C (estimado)", summary: "Debido a contracciones relativistas masivas de sus orbitales, se calcula que podría comportarse casi como un gas noble volátil.", history: "Nombrado en honor al astrónomo Nicolás Copérnico, formulador del modelo heliocéntrico." },
+            { n: 113, s: "Nh", name: "Nihonio", mass: "(286)", cat: "unknown", row: 7, col: 13, config: "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹", phase: "Sintético", discYear: "2004", discBy: "RIKEN (Japón)", electroneg: "N/A", radius: "N/A", oxStates: "N/A", mp: "N/A", bp: "N/A", summary: "Primer elemento descubierto y nombrado en Asia.", history: "Su nombre proviene de 'Nihon', una de las formas de decir Japón en japonés (la tierra del sol naciente)." },
+            { n: 114, s: "Fl", name: "Flerovio", mass: "(289)", cat: "unknown", row: 7, col: 14, config: "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²", phase: "Sintético", discYear: "1998", discBy: "JINR Dubna", electroneg: "N/A", radius: "N/A", oxStates: "N/A", mp: "N/A", bp: "N/A", summary: "Ubicado cerca de la hipotética 'Isla de Estabilidad' de la física nuclear.", history: "Nombrado en honor al Laboratorio Flerov de Reacciones Nucleares y su fundador Georgiy Flerov." },
+            { n: 115, s: "Mc", name: "Moscovio", mass: "(290)", cat: "unknown", row: 7, col: 15, config: "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³", phase: "Sintético", discYear: "2003", discBy: "JINR Dubna / LLNL", electroneg: "N/A", radius: "N/A", oxStates: "N/A", mp: "N/A", bp: "N/A", summary: "Sintetizado bombardeando Americio-243 con iones de Calcio-48.", history: "Nombrado en honor a la región del Óblast de Moscú donde se sitúa la ciudad científica de Dubna." },
+            { n: 116, s: "Lv", name: "Livermorio", mass: "(293)", cat: "unknown", row: 7, col: 16, config: "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴", phase: "Sintético", discYear: "2000", discBy: "JINR Dubna / LLNL", electroneg: "N/A", radius: "N/A", oxStates: "N/A", mp: "N/A", bp: "N/A", summary: "Elemento superpesado radioactivo con vida media de milisegundos.", history: "Nombrado en honor al Laboratorio Nacional Lawrence Livermore ubicado en Livermore, California." },
+            { n: 117, s: "Ts", name: "Teneso", mass: "(294)", cat: "unknown", row: 7, col: 17, config: "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵", phase: "Sintético", discYear: "2010", discBy: "JINR / Oak Ridge / Vanderbilt", electroneg: "N/A", radius: "N/A", oxStates: "N/A", mp: "N/A", bp: "N/A", summary: "Pertenece al grupo de los halógenos. Segundo elemento sintetizado más pesado.", history: "Nombrado por el estado de Tennessee, sede de laboratorios e investigaciones nucleares de EE.UU." },
+            { n: 118, s: "Og", name: "Oganesón", mass: "(294)", cat: "noble-gas", row: 7, col: 18, config: "[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶", phase: "Sintético / Gas probable", discYear: "2002", discBy: "JINR Dubna / LLNL", electroneg: "N/A", radius: "N/A", oxStates: "0, +2, +4", mp: "N/A", bp: "N/A", summary: "El elemento con el número atómico y masa atómica más altos jamás sintetizados. Se especula una nube electrónica uniforme por efectos relativistas.", history: "Nombrado en honor al físico nuclear Yuri Oganessian, pionero mundial en la síntesis de elementos superpesados." }
+        ];
+
+        // Estado Global de la Aplicación
+        let selectedElement = ELEMENTS.find(e => e.n === 26); // Hierro por defecto
+        let activeCategoryFilter = null;
+        let searchQuery = "";
+
+        // Inicialización del sitio web
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategoryFilters();
+            renderGrid();
+            renderDetailPanel(selectedElement);
+
+            // Escuchar eventos de búsqueda
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                applyFilters();
+            });
+
+            document.getElementById('resetCategoryBtn').addEventListener('click', () => {
+                activeCategoryFilter = null;
+                document.getElementById('resetCategoryBtn').classList.add('hidden');
+                applyFilters();
+            });
+        });
+
+        // Generar botones de filtro por categoría
+        function renderCategoryFilters() {
+            const container = document.getElementById('categoryFilterContainer');
+            container.innerHTML = '';
+
+            Object.keys(CATEGORIES).forEach(key => {
+                const cat = CATEGORIES[key];
+                const button = document.createElement('button');
+                button.className = `px-2.5 py-1 rounded-md text-[11px] font-medium border border-gray-800 transition flex items-center gap-1.5 hover:border-gray-600 bg-gray-950 text-gray-300`;
+                button.dataset.catKey = key;
+                button.innerHTML = `<span class="w-2.5 h-2.5 rounded-full ${cat.color}"></span> ${cat.name}`;
+                
+                button.addEventListener('click', () => {
+                    if (activeCategoryFilter === key) {
+                        activeCategoryFilter = null;
+                        document.getElementById('resetCategoryBtn').classList.add('hidden');
+                    } else {
+                        activeCategoryFilter = key;
+                        document.getElementById('resetCategoryBtn').classList.remove('hidden');
+                    }
+                    updateFilterButtonUI();
+                    applyFilters();
+                });
+
+                container.appendChild(button);
+            });
+        }
+
+        function updateFilterButtonUI() {
+            document.querySelectorAll('#categoryFilterContainer button').forEach(btn => {
+                const key = btn.dataset.catKey;
+                if (activeCategoryFilter === key) {
+                    btn.classList.add('ring-2', 'ring-white', 'bg-gray-800', 'text-white');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-white', 'bg-gray-800', 'text-white');
+                }
+            });
+        }
+
+        // Renderizar Grid Principal y Bloques Lantánidos/Actínidos
+        function renderGrid() {
+            const grid = document.getElementById('periodicGrid');
+            const lGrid = document.getElementById('lanthanidesGrid');
+            const aGrid = document.getElementById('actinidesGrid');
+
+            grid.innerHTML = '';
+            lGrid.innerHTML = '';
+            aGrid.innerHTML = '';
+
+            // Crear matriz para los 7 periodos estándar
+            for (let r = 1; r <= 7; r++) {
+                for (let c = 1; c <= 18; c++) {
+                    const elem = ELEMENTS.find(e => e.row === r && e.col === c);
+
+                    if (elem) {
+                        const cell = createElementCell(elem);
+                        cell.style.gridRow = r;
+                        cell.style.gridColumn = c;
+                        grid.appendChild(cell);
+                    } else {
+                        // Huecos vacíos para mantener estructura del Grid
+                        const empty = document.createElement('div');
+                        empty.style.gridRow = r;
+                        empty.style.gridColumn = c;
+                        grid.appendChild(empty);
+                    }
+                }
+            }
+
+            // Lantánidos (57 a 71)
+            ELEMENTS.filter(e => e.n >= 57 && e.n <= 71).forEach(elem => {
+                const cell = createElementCell(elem);
+                lGrid.appendChild(cell);
+            });
+
+            // Actínidos (89 a 103)
+            ELEMENTS.filter(e => e.n >= 89 && e.n <= 103).forEach(elem => {
+                const cell = createElementCell(elem);
+                aGrid.appendChild(cell);
+            });
+        }
+
+        // Crear elemento HTML para cada casilla química
+        function createElementCell(elem) {
+            const cat = CATEGORIES[elem.cat] || CATEGORIES['unknown'];
+            const card = document.createElement('div');
+            card.id = `elem-${elem.n}`;
+            card.className = `element-card bg-gray-900 border ${cat.border} rounded-lg p-1 flex flex-col justify-between cursor-pointer select-none relative overflow-hidden group`;
+            
+            // Borde superior coloreado de categoría
+            card.innerHTML = `
+                <div class="absolute top-0 left-0 right-0 h-1 ${cat.color}"></div>
+                <div class="flex justify-between items-start text-[9px] font-mono leading-none text-gray-400 mt-1">
+                    <span class="font-bold text-gray-300">${elem.n}</span>
+                    <span class="truncate max-w-[65%] text-right font-light">${elem.mass}</span>
+                </div>
+                <div class="text-center my-auto">
+                    <div class="text-base sm:text-lg font-bold font-mono tracking-tight text-white group-hover:scale-110 transition-transform">${elem.s}</div>
+                    <div class="text-[9px] font-medium text-gray-300 truncate w-full px-0.5">${elem.name}</div>
+                </div>
+            `;
+
+            card.addEventListener('click', () => {
+                selectedElement = elem;
+                updateSelectedCardUI();
+                renderDetailPanel(elem);
+            });
+
+            return card;
+        }
+
+        // Aplicar filtros de Búsqueda y Categorías
+        function applyFilters() {
+            ELEMENTS.forEach(elem => {
+                const card = document.getElementById(`elem-${elem.n}`);
+                if (!card) return;
+
+                let matchesSearch = true;
+                let matchesCat = true;
+
+                if (searchQuery) {
+                    matchesSearch = elem.name.toLowerCase().includes(searchQuery) ||
+                                    elem.s.toLowerCase().includes(searchQuery) ||
+                                    elem.n.toString() === searchQuery;
+                }
+
+                if (activeCategoryFilter) {
+                    matchesCat = elem.cat === activeCategoryFilter;
+                }
+
+                if (matchesSearch && matchesCat) {
+                    card.classList.remove('dimmed');
+                } else {
+                    card.classList.add('dimmed');
+                }
+            });
+        }
+
+        function updateSelectedCardUI() {
+            document.querySelectorAll('.element-card').forEach(c => c.classList.remove('selected', 'ring-2', 'ring-white'));
+            const activeCard = document.getElementById(`elem-${selectedElement.n}`);
+            if (activeCard) {
+                activeCard.classList.add('selected', 'ring-2', 'ring-white');
+            }
+        }
+
+        // Renderizar el Panel Lateral Izquierdo de Información Completa Académica
+        function renderDetailPanel(elem) {
+            const panel = document.getElementById('detailPanel');
+            const cat = CATEGORIES[elem.cat] || CATEGORIES['unknown'];
+
+            panel.innerHTML = `
+                <!-- Cabecera de la Tarjeta con Símbolo Gigante -->
+                <div class="relative bg-gray-950 rounded-xl p-4 border border-gray-800 overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-16 h-16 rounded-xl ${cat.color} flex flex-col items-center justify-center text-white shadow-lg font-mono font-bold">
+                                <span class="text-xs opacity-80">${elem.n}</span>
+                                <span class="text-2xl leading-none">${elem.s}</span>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-white tracking-tight">${elem.name}</h2>
+                                <span class="inline-block text-xs font-semibold px-2 py-0.5 rounded-full border ${cat.border} ${cat.text} bg-gray-900 mt-1">
+                                    ${cat.name}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos básicos del encabezado -->
+                    <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-800/80 text-xs font-mono">
+                        <div>
+                            <span class="text-gray-500 block">Masa Atómica:</span>
+                            <span class="text-gray-200 font-semibold">${elem.mass} u</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block">Config. Electrónica:</span>
+                            <span class="text-indigo-300 font-semibold truncate block">${elem.config}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Propiedades Fisicoquímicas Universitarias -->
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                        Propiedades Físicas & Químicas
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-gray-950 p-2.5 rounded-lg border border-gray-800">
+                            <span class="text-gray-500 block text-[11px]">Estado (TPN):</span>
+                            <span class="font-medium text-gray-200">${elem.phase}</span>
+                        </div>
+                        <div class="bg-gray-950 p-2.5 rounded-lg border border-gray-800">
+                            <span class="text-gray-500 block text-[11px]">Electronegatividad:</span>
+                            <span class="font-medium text-gray-200">${elem.electroneg} <span class="text-[10px] text-gray-500">(Pauling)</span></span>
+                        </div>
+                        <div class="bg-gray-950 p-2.5 rounded-lg border border-gray-800">
+                            <span class="text-gray-500 block text-[11px]">Radio Atómico:</span>
+                            <span class="font-medium text-gray-200">${elem.radius}</span>
+                        </div>
+                        <div class="bg-gray-950 p-2.5 rounded-lg border border-gray-800">
+                            <span class="text-gray-500 block text-[11px]">Estados de Oxidación:</span>
+                            <span class="font-medium text-indigo-400 font-mono">${elem.oxStates}</span>
+                        </div>
+                        <div class="bg-gray-950 p-2.5 rounded-lg border border-gray-800">
+                            <span class="text-gray-500 block text-[11px]">Punto de Fusión:</span>
+                            <span class="font-medium text-gray-200">${elem.mp}</span>
+                        </div>
+                        <div class="bg-gray-950 p-2.5 rounded-lg border border-gray-800">
+                            <span class="text-gray-500 block text-[11px]">Punto de Ebullición:</span>
+                            <span class="font-medium text-gray-200">${elem.bp}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Historia y Descubrimiento -->
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Historia & Descubrimiento
+                    </h3>
+                    <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 text-xs flex flex-col gap-2">
+                        <div class="flex justify-between border-b border-gray-900 pb-1.5">
+                            <span class="text-gray-500">Año de Descubrimiento:</span>
+                            <span class="text-amber-300 font-semibold font-mono">${elem.discYear}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-gray-900 pb-1.5">
+                            <span class="text-gray-500">Descubridor / Identificador:</span>
+                            <span class="text-gray-200 font-medium">${elem.discBy}</span>
+                        </div>
+                        <p class="text-gray-400 leading-relaxed mt-1 text-[11px]">
+                            ${elem.history}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Sección: Aplicaciones Clave -->
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Aplicaciones & Importancia
+                    </h3>
+                    <div class="bg-gray-950 p-3 rounded-lg border border-gray-800 text-xs text-gray-300 leading-relaxed">
+                        ${elem.summary}
+                    </div>
+                </div>
+            `;
+            updateSelectedCardUI();
+        }
+    </script>
+</body>
+</html>
