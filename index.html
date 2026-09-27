@@ -121,7 +121,7 @@
             <!-- Panel Leyenda / Filtros de Categorías -->
             <div class="bg-gray-900/60 rounded-xl p-3 border border-gray-800 text-xs">
                 <div class="text-gray-400 font-semibold mb-2 flex items-center justify-between">
-                    <span>CATEGORÍAS Y FILTROS DÉBIL/FUERTE:</span>
+                    <span>FILTRAR POR FAMILIA O GRUPO ELEMENTAL:</span>
                     <button id="resetCategoryBtn" class="text-indigo-400 hover:text-indigo-300 text-[11px] underline hidden">Restablecer filtro</button>
                 </div>
                 <div class="flex flex-wrap gap-1.5" id="categoryFilterContainer">
@@ -166,9 +166,9 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                 Fisicoquímica & Estructura Molecular
             </div>
-            <h2 class="text-2xl font-bold text-white tracking-tight">Tipos de Enlace y Geometría Molecular</h2>
+            <h2 class="text-2xl font-bold text-white tracking-tight">Modelos de Enlace Químico y Geometría Molecular</h2>
             <p class="text-sm text-gray-400 max-w-3xl mt-1">
-                Estudio sistemático de las interacciones intra e interatómicas que determinan la arquitectura molecular, la polaridad y el comportamiento termodinámico de las sustancias a nivel universitario.
+                Estudio de las interacciones intra e interatómicas. La diferencia de electronegatividad (ΔEN) constituye un continuo continuo de carácter covalente-iónico y no un límite rígido.
             </p>
         </div>
 
@@ -179,11 +179,11 @@
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col justify-between hover:border-indigo-500/50 transition-all">
                 <div>
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Covalente</span>
-                        <span class="text-xs text-gray-400 font-mono">ΔEN: 0.5 - 1.7</span>
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Covalente Polar</span>
+                        <span class="text-xs text-gray-400 font-mono">ΔEN Intermedia</span>
                     </div>
                     <h3 class="text-lg font-bold text-white mb-1">Enlace Covalente Polar</h3>
-                    <div class="text-xs text-indigo-300 font-medium mb-3">Ejemplo: Agua (H₂O) • Monóxido de dihidrógeno</div>
+                    <div class="text-xs text-indigo-300 font-medium mb-3">Ejemplo: Agua (H₂O)</div>
                     
                     <div class="bg-gray-950 rounded-lg p-3 my-3 border border-gray-800 flex items-center justify-center">
                         <svg viewBox="0 0 200 120" class="w-full h-28">
@@ -209,11 +209,11 @@
                     </div>
 
                     <p class="text-xs text-gray-300 leading-relaxed mb-3">
-                        Los electrones se comparten de forma desigual debido a la disparidad de electronegatividad (O: 3.44 vs H: 2.20). Esto induce la acumulación de densidad electrónica hacia el oxígeno, generando un momento dipolar neto (<span class="font-mono text-indigo-300">μ = 1.85 D</span>).
+                        Densidad electrónica asimétrica debido al gradiente de electronegatividad (O: 3.44 vs H: 2.20), generando un momento dipolar intrínseco de la molécula aislada (<span class="font-mono text-indigo-300">μ = 1.85 D</span>).
                     </p>
                 </div>
                 <div class="pt-3 border-t border-gray-800 text-[11px] text-gray-400">
-                    <strong class="text-gray-200">Impacto:</strong> Elevado punto de ebullición por puentes de hidrógeno y alta constante dieléctrica.
+                    <strong class="text-gray-200">Impacto Macro:</strong> Elevado punto de ebullición por redes de puentes de hidrógeno intermoleculares.
                 </div>
             </div>
 
@@ -221,8 +221,8 @@
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col justify-between hover:border-emerald-500/50 transition-all">
                 <div>
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">Apolar</span>
-                        <span class="text-xs text-gray-400 font-mono">ΔEN: 0.0 - 0.4</span>
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">Covalente Apolar</span>
+                        <span class="text-xs text-gray-400 font-mono">ΔEN Nula / Baja</span>
                     </div>
                     <h3 class="text-lg font-bold text-white mb-1">Enlace Covalente Apolar</h3>
                     <div class="text-xs text-emerald-300 font-medium mb-3">Ejemplo: Dióxido de Carbono (CO₂)</div>
@@ -249,11 +249,11 @@
                     </div>
 
                     <p class="text-xs text-gray-300 leading-relaxed mb-3">
-                        Aunque los enlaces C=O son polares (ΔEN = 0.89), la simetría lineal (180°) causa la anulación vectorial exacta de los dipolos de enlace, resultando en una molécula apolar.
+                        A pesar de la polaridad individual de los enlaces C=O (ΔEN = 0.89), la simetría lineal molecular induce la cancelación vectorial de los momentos dipolares.
                     </p>
                 </div>
                 <div class="pt-3 border-t border-gray-800 text-[11px] text-gray-400">
-                    <strong class="text-gray-200">Impacto:</strong> Gas a temperatura ambiente con bajas fuerzas intermoleculares de dispersión de London.
+                    <strong class="text-gray-200">Impacto Macro:</strong> Estado gaseoso a TPN regido por fuerzas intermoleculares débiles de dispersión de London.
                 </div>
             </div>
 
@@ -261,8 +261,8 @@
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col justify-between hover:border-red-500/50 transition-all">
                 <div>
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800">Iónico</span>
-                        <span class="text-xs text-gray-400 font-mono">ΔEN &gt; 1.7</span>
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800">Red Iónica</span>
+                        <span class="text-xs text-gray-400 font-mono">ΔEN Elevada</span>
                     </div>
                     <h3 class="text-lg font-bold text-white mb-1">Enlace Iónico</h3>
                     <div class="text-xs text-red-300 font-medium mb-3">Ejemplo: Cloruro de Sodio (NaCl)</div>
@@ -278,28 +278,28 @@
                             <circle cx="145" cy="60" r="22" class="fill-green-900/80 stroke-green-400 stroke-2"/>
                             <text x="145" y="65" text-anchor="middle" class="fill-white font-bold text-xs">Cl⁻</text>
 
-                            <text x="100" y="105" text-anchor="middle" class="fill-gray-400 text-[10px]">Atracción Electrostática Ley de Coulomb</text>
+                            <text x="100" y="105" text-anchor="middle" class="fill-gray-400 text-[10px]">Atracción Electrostática No Direccional</text>
                         </svg>
                     </div>
 
                     <p class="text-xs text-gray-300 leading-relaxed mb-3">
-                        Transferencia electrónica completa desde el metal alcalino (Na) al no metal halógeno (Cl, ΔEN = 2.23), formando una red cristalina rígida.
+                        Predominio de la transferencia electrónica casi completa desde el metal alcalino (Na) al halógeno (Cl), estabilizada en una red cristalina tridimensional.
                     </p>
                 </div>
                 <div class="pt-3 border-t border-gray-800 text-[11px] text-gray-400">
-                    <strong class="text-gray-200">Impacto:</strong> Altos puntos de fusión (801°C), frágil, conductor eléctrico en fase fundida o disolución.
+                    <strong class="text-gray-200">Impacto Macro:</strong> Red reticular con elevado punto de fusión (801°C) y conducción en fase líquida o solución.
                 </div>
             </div>
 
-            <!-- 4. Enlace Covalente Dativo / Coordinado -->
+            <!-- 4. Mecanismo Coordinado / Adductos de Lewis -->
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col justify-between hover:border-yellow-500/50 transition-all">
                 <div>
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800">Coordinado</span>
-                        <span class="text-xs text-gray-400 font-mono">Par Donado</span>
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-yellow-950 text-yellow-300 border border-yellow-800">Mecanismo Lewis</span>
+                        <span class="text-xs text-gray-400 font-mono">Donante-Aceptor</span>
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-1">Enlace Coordinado (Dativo)</h3>
-                    <div class="text-xs text-yellow-300 font-medium mb-3">Ejemplo: Catión Amonio (NH₄⁺) • Azanio</div>
+                    <h3 class="text-lg font-bold text-white mb-1">Enlace Covalente Coordinado</h3>
+                    <div class="text-xs text-yellow-300 font-medium mb-3">Ejemplo: Formación del Ion Amonio (NH₄⁺)</div>
                     
                     <div class="bg-gray-950 rounded-lg p-3 my-3 border border-gray-800 flex items-center justify-center">
                         <svg viewBox="0 0 200 120" class="w-full h-28">
@@ -320,16 +320,16 @@
 
                             <line x1="100" y1="40" x2="100" y2="30" class="stroke-amber-400 stroke-2"/>
 
-                            <text x="100" y="115" text-anchor="middle" class="fill-yellow-400 font-mono text-[9px]">Hibridación sp³ Tetraédrica (109.5°)</text>
+                            <text x="100" y="115" text-anchor="middle" class="fill-yellow-400 font-mono text-[9px]">Geometría Tetraédrica (Enlaces Idénticos)</text>
                         </svg>
                     </div>
 
                     <p class="text-xs text-gray-300 leading-relaxed mb-3">
-                        Uno solo de los átomos (Nitrógeno) aporta el par no enlazante libre para ser compartido con un catión de Hidrógeno (H⁺) que posee un orbital 1s vacío.
+                        Refiere al origen del par electrónico (donado por el nucleófilo N al orbital libre del H⁺). Una vez constituido, el enlace es físicamente indistinguible de los demás enlaces covalentes N-H.
                     </p>
                 </div>
                 <div class="pt-3 border-t border-gray-800 text-[11px] text-gray-400">
-                    <strong class="text-gray-200">Impacto:</strong> Fundamental en la química de complejos de coordinación y reacciones ácido-base de Lewis.
+                    <strong class="text-gray-200">Impacto Macro:</strong> Describe la formación de complejos de coordinación y reacciones ácido-base de Lewis.
                 </div>
             </div>
 
@@ -337,8 +337,8 @@
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col justify-between hover:border-blue-500/50 transition-all">
                 <div>
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">Deslocalizado</span>
-                        <span class="text-xs text-gray-400 font-mono">Teoría de Bandas</span>
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">Red Metálica</span>
+                        <span class="text-xs text-gray-400 font-mono">Modelo Clásico Drude</span>
                     </div>
                     <h3 class="text-lg font-bold text-white mb-1">Enlace Metálico</h3>
                     <div class="text-xs text-blue-300 font-medium mb-3">Ejemplo: Cobre Elemental (Cu)</div>
@@ -361,27 +361,27 @@
                                 <circle cx="75" cy="85" r="2"/><circle cx="125" cy="85" r="2"/>
                             </g>
 
-                            <text x="100" y="112" text-anchor="middle" class="fill-cyan-400 font-mono text-[9px]">Mar / Nube de Electrones Libres</text>
+                            <text x="100" y="112" text-anchor="middle" class="fill-cyan-400 font-mono text-[9px]">Gas de Electrones / Cationes Fijos</text>
                         </svg>
                     </div>
 
                     <p class="text-xs text-gray-300 leading-relaxed mb-3">
-                        Los cationes metálicos fijos se coordinan en un retículo cristalino inmerso en una "nube electrónica" de electrones de valencia altamente móviles.
+                        Red cristalina de cationes sumergida en una nube de electrones deslocalizados (explicada cuánticamente de forma rigurosa mediante la Teoría de Bandas en sólidos).
                     </p>
                 </div>
                 <div class="pt-3 border-t border-gray-800 text-[11px] text-gray-400">
-                    <strong class="text-gray-200">Impacto:</strong> Elevada conductividad térmica y eléctrica, ductilidad, maleabilidad y brillo característico.
+                    <strong class="text-gray-200">Impacto Macro:</strong> Elevada conductividad térmica/eléctrica, ductilidad y maleabilidad.
                 </div>
             </div>
 
-            <!-- 6. Enlace Hipervalente (Octeto Expandido) -->
+            <!-- 6. Enlace de Tres Centros (SF6 / Hipervalencia) -->
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col justify-between hover:border-pink-500/50 transition-all">
                 <div>
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-pink-950 text-pink-300 border border-pink-800">Hipervalente</span>
-                        <span class="text-xs text-gray-400 font-mono">Octeto Expandido (12e⁻)</span>
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-pink-950 text-pink-300 border border-pink-800">Enlaces 3c-4e</span>
+                        <span class="text-xs text-gray-400 font-mono">Hipervalencia</span>
                     </div>
-                    <h3 class="text-lg font-bold text-white mb-1">Enlace Hipervalente</h3>
+                    <h3 class="text-lg font-bold text-white mb-1">Estructuras Hipervalentes</h3>
                     <div class="text-xs text-pink-300 font-medium mb-3">Ejemplo: Hexafluoruro de Azufre (SF₆)</div>
                     
                     <div class="bg-gray-950 rounded-lg p-3 my-3 border border-gray-800 flex items-center justify-center">
@@ -396,16 +396,16 @@
                             <circle cx="70" cy="35" r="9" class="fill-cyan-900 stroke-cyan-400"/><text x="70" y="38" text-anchor="middle" class="fill-white text-[8px]">F</text>
                             <circle cx="130" cy="85" r="9" class="fill-cyan-900 stroke-cyan-400"/><text x="130" y="88" text-anchor="middle" class="fill-white text-[8px]">F</text>
 
-                            <text x="100" y="115" text-anchor="middle" class="fill-pink-400 font-mono text-[9px]">Geometría Octaédrica • Hibridación sp³d²</text>
+                            <text x="100" y="115" text-anchor="middle" class="fill-pink-400 font-mono text-[9px]">Geometría Octaédrica • Enlaces 3c-4e</text>
                         </svg>
                     </div>
 
                     <p class="text-xs text-gray-300 leading-relaxed mb-3">
-                        El azufre utiliza sus orbitales <span class="font-mono text-pink-300">d</span> para acomodar 12 electrones de valencia en 6 enlaces equivalentes con flúor, expandiendo su octeto.
+                        Explicado formalmente mediante enlaces moleculares de tres centros y cuatro electrones (3c-4e) e interacciones polares, sin requirimiento de orbitales d de alta energía.
                     </p>
                 </div>
                 <div class="pt-3 border-t border-gray-800 text-[11px] text-gray-400">
-                    <strong class="text-gray-200">Impacto:</strong> Gas inerte y dieléctrico excepcional usado como aislante de alta tensión.
+                    <strong class="text-gray-200">Impacto Macro:</strong> Molécula inerte de alta simetría utilizada como aislante dieléctrico.
                 </div>
             </div>
 
@@ -504,7 +504,7 @@
             { n: 60, s: "Nd", name: "Neodimio", mass: "144.24", cat: "lanthanide", row: 8, col: 7, config: "[Xe] 4f⁴ 6s²", phase: "Sólido", discYear: "1885", discBy: "Carl Auer von Welsbach", electroneg: "1.14", radius: "206 pm", oxStates: "+3", mp: "1024 °C", bp: "3074 °C", summary: "Pilar de los imanes permanentes más potentes conocidos (Nd2Fe14B) indispensables para motores de VE y turbinas eólicas.", history: "Separado del 'didimio'. Su nombre proviene del griego 'neos didymos' (nuevo gemelo)." },
             { n: 61, s: "Pm", name: "Prometio", mass: "(145)", cat: "lanthanide", row: 8, col: 8, config: "[Xe] 4f⁵ 6s²", phase: "Sólido", discYear: "1945", discBy: "Marinsky, Glendenin & Coryell", electroneg: "1.13", radius: "205 pm", oxStates: "+3", mp: "1042 °C", bp: "3000 °C", summary: "El único lantánido radiactivo sin isótopos estables. Utilizado en fuentes lumínicas beta-voltaicas de larga duración.", history: "Sintetizado en los laboratorios de Oak Ridge durante el Proyecto Manhattan a partir de productos de fisión del Uranio." },
             { n: 62, s: "Sm", name: "Samario", mass: "150.36", cat: "lanthanide", row: 8, col: 9, config: "[Xe] 4f⁶ 6s²", phase: "Sólido", discYear: "1879", discBy: "Paul-Émile Lecoq de Boisbaudran", electroneg: "1.17", radius: "238 pm", oxStates: "+2, +3", mp: "1072 °C", bp: "1794 °C", summary: "Imanes de Samario-Cobalto (SmCo) con altísima resistencia a la desmagnetización térmica a elevadas temperaturas.", history: "Primer elemento nombrado en honor a una persona viva o real: el ingeniero de minas ruso Vasily Samarsky-Bykhovets." },
-            { n: 63, s: "Eu", name: "Europio", mass: "151.96", cat: "lanthanide", row: 8, col: 10, config: "[Xe] 4f⁷ 6s²", phase: "Sólido", discYear: "1901", discBy: "Eugène-Anatole Demarçay", electroneg: "1.20", radius: "231 pm", oxStates: "+2, +3", mp: "822 °C", bp: "1529 °C", summary: "El lantánido más reactivo. Los fósforos de europio (Eu3+) producen la emisión roja en pantallas tricolor y billetes de Euro.", history: "Aislado en estado относительно puro por Demarçay mediante cristalización fraccionada repetida del nitrato de samario-magnesio." },
+            { n: 63, s: "Eu", name: "Europio", mass: "151.96", cat: "lanthanide", row: 8, col: 10, config: "[Xe] 4f⁷ 6s²", phase: "Sólido", discYear: "1901", discBy: "Eugène-Anatole Demarçay", electroneg: "1.20", radius: "231 pm", oxStates: "+2, +3", mp: "822 °C", bp: "1529 °C", summary: "El lantánido más reactivo. Los fósforos de europio (Eu3+) producen la emisión roja en pantallas tricolor y billetes de Euro.", history: "Aislado en estado relativamente puro por Demarçay mediante cristalización fraccionada repetida del nitrato de samario-magnesio." },
             { n: 64, s: "Gd", name: "Gadolinio", mass: "157.25", cat: "lanthanide", row: 8, col: 11, config: "[Xe] 4f⁷ 5d¹ 6s²", phase: "Sólido", discYear: "1880", discBy: "Jean Charles Galissard de Marignac", electroneg: "1.20", radius: "233 pm", oxStates: "+3", mp: "1313 °C", bp: "3273 °C", summary: "Siete electrones no apareados en la capa 4f. Sus complejos paramagnéticos (Gd-DTPA) son agentes de contraste estándar en RMN.", history: "Nombrado en honor a Johan Gadolin, el químico finlandés pionero en la investigación de las tierras raras." },
             { n: 65, s: "Tb", name: "Terbio", mass: "158.93", cat: "lanthanide", row: 8, col: 12, config: "[Xe] 4f⁹ 6s²", phase: "Sólido", discYear: "1843", discBy: "Carl Gustaf Mosander", electroneg: "1.20", radius: "225 pm", oxStates: "+3, +4", mp: "1356 °C", bp: "3230 °C", summary: "Utilizado en fósforos verdes de tubos de Rayos Catódicos y aleaciones magnetostrictivas Terfenol-D.", history: "Extraído de la yttria por Mosander. Nombrado en referencia a la cantera sueca de Ytterby." },
             { n: 66, s: "Dy", name: "Disprosio", mass: "162.50", cat: "lanthanide", row: 8, col: 13, config: "[Xe] 4f¹⁰ 6s²", phase: "Sólido", discYear: "1886", discBy: "Paul-Émile Lecoq de Boisbaudran", electroneg: "1.22", radius: "228 pm", oxStates: "+3", mp: "1412 °C", bp: "2567 °C", summary: "Posee una de las susceptibilidades magnéticas más altas. Aditivo en imanes NdFeB para evitar su desmagnetización.", history: "A Boisbaudran le tomó 30 cristalizaciones consecutivas para aislar su óxido. Nombre del griego 'dysprositos' (difícil de obtener)." },
